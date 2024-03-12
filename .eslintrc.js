@@ -1,0 +1,1 @@
+module.exports = require("./eslint_config/.eslintrc.js");

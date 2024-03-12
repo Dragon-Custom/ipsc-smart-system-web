@@ -1,0 +1,3 @@
+[submodule "eslint_config"]
+	path = eslint_config
+	url = https://gist.github.com/a29828f31cad77a3ade498bff928eb9b.git
