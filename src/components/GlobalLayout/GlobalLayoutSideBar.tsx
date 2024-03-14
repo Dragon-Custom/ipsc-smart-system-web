@@ -1,5 +1,6 @@
 import { Inbox } from "@mui/icons-material";
 import {
+    Container,
     List,
     ListItem,
     ListItemButton,
@@ -19,7 +20,12 @@ export interface GlobalLayoutSideBarProps {
 
 const ROUTE_LIST = [
     {
-        title: "1",
+        title: "Home page",
+        icon: <Inbox />,
+        url: "/",
+    },
+    {
+        title: "Home page",
         icon: <Inbox />,
         url: "/",
     },
@@ -43,27 +49,30 @@ export default function GlobalLayoutSideBar(props: GlobalLayoutSideBarProps) {
                 ModalProps={{
                     keepMounted: true,
                 }}
+                sx={{ m: 0, p: 0 }}
             >
-                <List sx={{ width: "35vw" }}>
-                    {ROUTE_LIST.map((v, k) => {
-                        return (
-                            <ListItemButton
-                                key={k}
-                                selected={selectedIndex === k}
-                                onClick={(event) => {
-                                    setSelectedIndex(k);
-                                }}
-                                component={NextLinkComposed}
-                                to={{
-                                    pathname: v.url,
-                                }}
-                            >
-                                <ListItemIcon>{v.icon}</ListItemIcon>
-                                <ListItemText primary={v.title} />
-                            </ListItemButton>
-                        );
-                    })}
-                </List>
+                {/* <Container maxWidth="100px" sx={{ m: 0, p: 0 }}> */}
+                    <List sx={{ m: 0, p: 0, width: 200}}>
+                        {ROUTE_LIST.map((v, k) => {
+                            return (
+                                <ListItemButton
+                                    key={k}
+                                    selected={selectedIndex === k}
+                                    onClick={(event) => {
+                                        setSelectedIndex(k);
+                                    }}
+                                    component={NextLinkComposed}
+                                    to={{
+                                        pathname: v.url,
+                                    }}
+                                >
+                                    <ListItemIcon>{v.icon}</ListItemIcon>
+                                    <ListItemText primary={v.title} />
+                                </ListItemButton>
+                            );
+                        })}
+                    </List>
+                {/* </Container> */}
             </SwipeableDrawer>
         </>
     );
