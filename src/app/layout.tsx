@@ -7,7 +7,7 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import GlobalLayoutAppBar from "@/components/GlobalLayout/GlobalLayoutAppBar";
-import { ThemeProvider, createTheme } from "@mui/material";
+import { Grid, Paper, Stack, ThemeProvider, createTheme } from "@mui/material";
 import { ConfirmProvider } from "material-ui-confirm";
 import GlobalLayoutSideBar from "@/components/GlobalLayout/GlobalLayoutSideBar";
 
@@ -18,8 +18,6 @@ const THEME = createTheme({
         mode: "dark",
     },
 });
-
-
 
 type SidebarAction = "close" | "open";
 function sideBarReducer(state: boolean, action: SidebarAction): boolean {
@@ -44,15 +42,15 @@ export default function RootLayout({
             <body className={INTER.className}>
                 <ThemeProvider theme={THEME}>
                     <ConfirmProvider>
-                        <GlobalLayoutAppBar
-                            onMenuClick={() => dispatch("open")}
-                        />
                         <GlobalLayoutSideBar
                             open={sideBarState}
                             onClose={() => dispatch("close")}
                             onOpen={() => dispatch("open")}
                         />
-                        {children}
+                        <GlobalLayoutAppBar
+                            onMenuClick={() => dispatch("open")}
+                        />
+                        <Paper elevation={0}>{children}</Paper>
                     </ConfirmProvider>
                 </ThemeProvider>
             </body>
