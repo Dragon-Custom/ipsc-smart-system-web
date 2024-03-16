@@ -7,53 +7,57 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import GlobalLayoutAppBar from "@/components/GlobalLayout/GlobalLayoutAppBar";
-import { Grid, Paper, Stack, ThemeProvider, createTheme } from "@mui/material";
+import { Paper, ThemeProvider, createTheme } from "@mui/material";
 import { ConfirmProvider } from "material-ui-confirm";
 import GlobalLayoutSideBar from "@/components/GlobalLayout/GlobalLayoutSideBar";
+import { Provider } from "react-redux";
+import { STORE } from "@/store";
 
 const INTER = inter({ subsets: ["latin"] });
 
 const THEME = createTheme({
-    palette: {
-        mode: "dark",
-    },
+	palette: {
+		mode: "dark",
+	},
 });
 
 type SidebarAction = "close" | "open";
 function sideBarReducer(state: boolean, action: SidebarAction): boolean {
-    switch (action) {
-        case "close":
-            return false;
-        case "open":
-            return true;
-        default:
-            throw Error("Unknown action.");
-    }
+	switch (action) {
+	case "close":
+		return false;
+	case "open":
+		return true;
+	default:
+		throw Error("Unknown action.");
+	}
 }
 export default function RootLayout({
-    children,
+	children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const [sideBarState, dispatch] = React.useReducer(sideBarReducer, false);
+	const [sideBarState, dispatch] = React.useReducer(sideBarReducer, false);
 
-    return (
-        <html lang="en">
-            <body className={INTER.className}>
-                <ThemeProvider theme={THEME}>
-                    <ConfirmProvider>
-                        <GlobalLayoutSideBar
-                            open={sideBarState}
-                            onClose={() => dispatch("close")}
-                            onOpen={() => dispatch("open")}
-                        />
-                        <GlobalLayoutAppBar
-                            onMenuClick={() => dispatch("open")}
-                        />
-                        <Paper elevation={0}>{children}</Paper>
-                    </ConfirmProvider>
-                </ThemeProvider>
-            </body>
-        </html>
-    );
+	return (
+		<html lang="en">
+			<body className={INTER.className}>
+				<ThemeProvider theme={THEME}>
+					<Provider store={STORE}>
+						<ConfirmProvider>
+							<GlobalLayoutSideBar
+								open={sideBarState}
+								onClose={() => dispatch("close")}
+								onOpen={() => dispatch("open")}
+							/>
+							<GlobalLayoutAppBar
+								onMenuClick={() => dispatch("open")}
+							/>
+							<Paper elevation={0}>{children}</Paper>
+						</ConfirmProvider>
+					</Provider>
+				</ThemeProvider>
+			</body>
+		</html>
+	);
 }
