@@ -7,7 +7,7 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import GlobalLayoutAppBar from "@/components/GlobalLayout/GlobalLayoutAppBar";
-import { Paper, ThemeProvider, createTheme } from "@mui/material";
+import { Container, Paper, ThemeProvider, Toolbar, createTheme } from "@mui/material";
 import { ConfirmProvider } from "material-ui-confirm";
 import GlobalLayoutSideBar from "@/components/GlobalLayout/GlobalLayoutSideBar";
 
@@ -50,7 +50,11 @@ export default function RootLayout({
 						<GlobalLayoutAppBar
 							onMenuClick={() => dispatch("open")}
 						/>
-						<Paper elevation={0}>{children}</Paper>
+						<Container fixed maxWidth="xl" sx={{height:"100vh", top:0, overflowY:"auto"}}>
+
+							<Toolbar />
+							<Paper elevation={1}>{children}</Paper>
+						</Container>
 					</ConfirmProvider>
 				</ThemeProvider>
 			</body>

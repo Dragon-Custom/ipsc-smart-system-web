@@ -25,27 +25,27 @@ const ROUTE_LIST = [
 	{
 		title: "Scoring",
 		icon: <SportsScore />,
-		url: "/",
+		url: "/scoring",
 	},
 	{
 		title: "Stages",
 		icon: <FolderCopy />,
-		url: "/",
+		url: "/stages",
 	},
 	{
 		title: "Shooters",
 		icon: <RecentActors />,
-		url: "/",
+		url: "/shooters",
 	},
 	{
 		title: "Statistics",
 		icon: <Equalizer />,
-		url: "/",
+		url: "/statistics",
 	},
 	{
 		title: "Settings",
 		icon: <Settings />,
-		url: "/",
+		url: "/settings",
 	},
 ];
 
@@ -69,7 +69,6 @@ export default function GlobalLayoutSideBar(props: GlobalLayoutSideBarProps) {
 				}}
 				sx={{ m: 0, p: 0 }}
 			>
-				{/* <Container maxWidth="100px" sx={{ m: 0, p: 0 }}> */}
 				<List sx={{ m: 0, p: 0, width: 200}}>
 					{ROUTE_LIST.map((v, k) => {
 						return (
@@ -90,7 +89,6 @@ export default function GlobalLayoutSideBar(props: GlobalLayoutSideBarProps) {
 						);
 					})}
 				</List>
-				{/* </Container> */}
 			</SwipeableDrawer>
 		</>
 	);
