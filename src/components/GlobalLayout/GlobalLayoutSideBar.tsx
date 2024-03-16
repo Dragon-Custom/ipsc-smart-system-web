@@ -1,4 +1,4 @@
-import { Inbox } from "@mui/icons-material";
+import { Equalizer, FolderCopy, Home, RecentActors, Settings, SportsScore } from "@mui/icons-material";
 import {
 	List,
 	ListItemButton,
@@ -19,12 +19,32 @@ export interface GlobalLayoutSideBarProps {
 const ROUTE_LIST = [
 	{
 		title: "Home page",
-		icon: <Inbox />,
+		icon: <Home />,
 		url: "/",
 	},
 	{
-		title: "Home page",
-		icon: <Inbox />,
+		title: "Scoring",
+		icon: <SportsScore />,
+		url: "/",
+	},
+	{
+		title: "Stages",
+		icon: <FolderCopy />,
+		url: "/",
+	},
+	{
+		title: "Shooters",
+		icon: <RecentActors />,
+		url: "/",
+	},
+	{
+		title: "Statistics",
+		icon: <Equalizer />,
+		url: "/",
+	},
+	{
+		title: "Settings",
+		icon: <Settings />,
 		url: "/",
 	},
 ];
