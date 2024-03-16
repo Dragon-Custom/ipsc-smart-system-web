@@ -10,8 +10,6 @@ import GlobalLayoutAppBar from "@/components/GlobalLayout/GlobalLayoutAppBar";
 import { Paper, ThemeProvider, createTheme } from "@mui/material";
 import { ConfirmProvider } from "material-ui-confirm";
 import GlobalLayoutSideBar from "@/components/GlobalLayout/GlobalLayoutSideBar";
-import { Provider } from "react-redux";
-import { STORE } from "@/store";
 
 const INTER = inter({ subsets: ["latin"] });
 
@@ -43,19 +41,17 @@ export default function RootLayout({
 		<html lang="en">
 			<body className={INTER.className}>
 				<ThemeProvider theme={THEME}>
-					<Provider store={STORE}>
-						<ConfirmProvider>
-							<GlobalLayoutSideBar
-								open={sideBarState}
-								onClose={() => dispatch("close")}
-								onOpen={() => dispatch("open")}
-							/>
-							<GlobalLayoutAppBar
-								onMenuClick={() => dispatch("open")}
-							/>
-							<Paper elevation={0}>{children}</Paper>
-						</ConfirmProvider>
-					</Provider>
+					<ConfirmProvider>
+						<GlobalLayoutSideBar
+							open={sideBarState}
+							onClose={() => dispatch("close")}
+							onOpen={() => dispatch("open")}
+						/>
+						<GlobalLayoutAppBar
+							onMenuClick={() => dispatch("open")}
+						/>
+						<Paper elevation={0}>{children}</Paper>
+					</ConfirmProvider>
 				</ThemeProvider>
 			</body>
 		</html>
