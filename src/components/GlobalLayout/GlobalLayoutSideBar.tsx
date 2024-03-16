@@ -1,4 +1,4 @@
-import { Equalizer, FolderCopy, Home, RecentActors, Settings, SportsScore } from "@mui/icons-material";
+import { Equalizer, FolderCopy, Home, RecentActors, Settings, SportsScore, Timer } from "@mui/icons-material";
 import {
 	List,
 	ListItemButton,
@@ -36,6 +36,11 @@ const ROUTE_LIST = [
 		title: "Shooters",
 		icon: <RecentActors />,
 		url: "/shooters",
+	},
+	{
+		title: "Timer",
+		icon: <Timer />,
+		url: "/timer",
 	},
 	{
 		title: "Statistics",
