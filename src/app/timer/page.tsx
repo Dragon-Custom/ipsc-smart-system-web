@@ -1,8 +1,12 @@
 "use client";
+import { BLEStopplateService } from "@/ble_stopplate_service";
 import { Timer as TimerIcon } from "@mui/icons-material";
 import { Button, ButtonProps, Container, Divider, Grid, List, ListItemButton, ListItemButtonProps, ListItemIcon, ListItemText, Stack, Typography } from "@mui/material";
 import React from "react";
 
+function getRandomArbitrary(min: number, max: number) {
+	return Math.random() * (max - min) + min;
+}
 
 interface TimerControlButtonProps extends React.PropsWithChildren, ButtonProps { }
 function TimerControlButton(props: TimerControlButtonProps) {
@@ -76,6 +80,7 @@ function hitRecordReducer(
 
 
 export default function Timer() {
+	const stopplate = BLEStopplateService.GetInstance();
 	const [currentShot, currentShotDispatch] = React.useReducer(currentShotReducer, 0);
 	const [hitRecord, hitRecordDispatch] = React.useReducer(hitRecordReducer, [
 		{
@@ -87,23 +92,59 @@ export default function Timer() {
 			splitTime: 11,
 		},
 	]);
+	const [displayTime, setDisplayTime] = React.useState(0);
+	const [buttonDisableState, setButtonDisableState] = React.useState({
+		review: false,
+		start: false,
+		clear: false,
+		settings: false,
+	});
+
+
+
+	async function onStartButtonClick() {
+		//TODO: implemnent the stopplate connect feature to use this setting
+		// const setting = await stopplate.getSettings();
+		const minRandTime = 1, maxRandTime = 4;
+		const countDownTime = getRandomArbitrary(minRandTime, maxRandTime);
+		setButtonDisableState({ clear: false, review: true, settings: true, start: true });
+		await new Promise((resolve) => {
+			let left_time = countDownTime;
+			function breakOut() {
+				clearInterval(intervalId);
+				resolve(null);
+			}
+			setTimeout(breakOut, countDownTime * 1000);
+			const intervalId = setInterval(() => {
+				left_time = left_time - 0.01;
+				setDisplayTime(left_time);
+			}, 10);
+		});
+		setButtonDisableState({ clear: true, review: false, settings: true, start: true });
+		setDisplayTime(0);
+	}
+
+
+	React.useEffect(() => {
+		setDisplayTime(hitRecord[currentShot].absoluteTime);
+	}, [currentShot, hitRecord]);
 
 	return (
 		<>
 			<Container maxWidth="md">
 				<Stack alignItems={"center"}>
-					<Typography variant="h1">00.00</Typography>
+					<Typography variant="h1">{displayTime.toFixed(2)}</Typography>
 					<Stack direction={"row"} justifyContent={"space-around"} width={"100%"}>
-						<Typography variant="caption">Shot 1/11</Typography>
-						<Typography variant="caption">Time split 00.00</Typography>
+						<Typography variant="caption">Shot: {currentShot+1}/{hitRecord.length}</Typography>
+						<Typography variant="caption">Time split: {hitRecord[currentShot].splitTime.toFixed(2)}</Typography>
 					</Stack>
 				</Stack>
 				<Divider sx={{my:2}} />
 				<Grid container rowSpacing={1} columnSpacing={1} columns={2} sx={{height:150}}>
-					<TimerControlButton>Review</TimerControlButton>
-					<TimerControlButton>Start</TimerControlButton>
-					<TimerControlButton>Clear</TimerControlButton>
-					<TimerControlButton>Settings</TimerControlButton>
+					<TimerControlButton disabled={buttonDisableState.review}>Review</TimerControlButton>
+					<TimerControlButton disabled={buttonDisableState.start} onClick={onStartButtonClick}>Start</TimerControlButton>
+					<TimerControlButton disabled={buttonDisableState.clear}>Clear</TimerControlButton>
+					<TimerControlButton disabled={buttonDisableState.settings}>Settings</TimerControlButton>
 				</Grid>
 				<Divider sx={{my:2}} />
 				<List component="nav" aria-label="main mailbox folders">
