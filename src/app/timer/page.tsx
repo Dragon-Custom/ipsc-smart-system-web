@@ -14,12 +14,13 @@ function TimerControlButton(props: TimerControlButtonProps) {
 	);
 }
 
-interface ShotHistoryItemProps extends ListItemButtonProps {
+interface HitRecordItemProps extends ListItemButtonProps {
 	index: number;
 	selectedIndex: number;
 	dispatch: (value: number) => unknown;
+	hitRecord: HitRecord;
 }
-function ShotHistoryItem(props: ShotHistoryItemProps) {
+function HitRecordItem(props: HitRecordItemProps) {
 	const { index: INDEX, selectedIndex: SELECTED_INDEX, dispatch, ...BTN_PROP } = props;
 	return (
 		<ListItemButton
@@ -30,11 +31,10 @@ function ShotHistoryItem(props: ShotHistoryItemProps) {
 			<ListItemIcon>
 				<TimerIcon />
 			</ListItemIcon>
-			<ListItemText primary="10.10" secondary={`Shot ${1} / Time split ${(10.0).toFixed(2)}`}/>
+			<ListItemText primary={props.hitRecord.absoluteTime} secondary={`Shot ${props.index} / Time split ${(props.hitRecord.splitTime).toFixed(2)}`}/>
 		</ListItemButton>
 	);
 }
-
 function currentShotReducer(
 	state: number,
 	action: {
@@ -53,9 +53,40 @@ function currentShotReducer(
 		throw Error("Unknown action.");
 	}
 }
+
+
+interface HitRecord {
+	absoluteTime: number,
+	splitTime: number,
+}
+function hitRecordReducer(
+	state: HitRecord[],
+	action: {
+		type: "insert",
+		value: HitRecord
+	},
+) {
+	switch (action.type) {
+	case "insert":
+		return [...state, ...[action.value]];
+	default:
+		throw Error("Unknown action.");
+	}
+}
+
+
 export default function Timer() {
 	const [currentShot, currentShotDispatch] = React.useReducer(currentShotReducer, 0);
-
+	const [hitRecord, hitRecordDispatch] = React.useReducer(hitRecordReducer, [
+		{
+			absoluteTime: 0,
+			splitTime: 1,
+		},
+		{
+			absoluteTime: 10,
+			splitTime: 11,
+		},
+	]);
 
 	return (
 		<>
@@ -76,16 +107,15 @@ export default function Timer() {
 				</Grid>
 				<Divider sx={{my:2}} />
 				<List component="nav" aria-label="main mailbox folders">
-					<ShotHistoryItem
-						dispatch={(value) => currentShotDispatch({ type: "set", value })}
-						index={0}
-						selectedIndex={currentShot}
-					/>
-					<ShotHistoryItem
-						dispatch={(value) => currentShotDispatch({ type: "set", value })}
-						index={1}
-						selectedIndex={currentShot}
-					/>
+					{hitRecord.map((v, k) =>
+						<HitRecordItem
+							key={k}
+							dispatch={(value) => currentShotDispatch({ type: "set", value })}
+							index={k}
+							selectedIndex={currentShot}
+							hitRecord={v}
+						/>,
+					)}
 				</List>
 			</Container>
 		</>
