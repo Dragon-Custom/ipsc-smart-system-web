@@ -52,7 +52,7 @@ export default function RootLayout({
 						/>
 						<Stack sx={{width:"100%",height:"100vh", top:0, overflowY:"auto"}}>
 							<Toolbar />
-							<Paper elevation={1} sx={{height:"100%", px:10, py:5}}>{children}</Paper>
+							<Paper elevation={1} sx={{height:"100%", p:2}}>{children}</Paper>
 						</Stack>
 					</ConfirmProvider>
 				</ThemeProvider>
