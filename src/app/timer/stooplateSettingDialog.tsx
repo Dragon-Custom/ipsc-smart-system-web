@@ -34,7 +34,6 @@ function SettingItem(props: SettingItemProps) {
 						switch (props.type) {
 						case "selector":
 							return <>dwa</>;
-							break;
 						case "slider":
 							return (
 								<>
@@ -72,7 +71,6 @@ function SettingItem(props: SettingItemProps) {
 									</Grid>
 								</>
 							);
-							break;
 						}
 					})()}
 				</Stack>
