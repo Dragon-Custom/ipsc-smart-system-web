@@ -3,6 +3,7 @@ import { BLEStopplateService } from "@/ble_stopplate_service";
 import { Timer as TimerIcon } from "@mui/icons-material";
 import { Button, ButtonProps, Container, Divider, Grid, List, ListItemButton, ListItemButtonProps, ListItemIcon, ListItemText, Stack, Typography } from "@mui/material";
 import React from "react";
+import StopplateSettngDialog from "./stooplateSettingDialog";
 
 function getRandomArbitrary(min: number, max: number) {
 	return Math.random() * (max - min) + min;
@@ -87,7 +88,7 @@ function hitRecordReducer(
 	}
 }
 
-let countDownFlag = false;
+let count_down_flag = false;
 export default function Timer() {
 	const stopplate = BLEStopplateService.GetInstance();
 	// const [countDownFlag, setCountDownFlag] = React.useState(false);
@@ -109,6 +110,7 @@ export default function Timer() {
 		clear: false,
 		settings: false,
 	});
+	const [settingDialogOpen, setSettingDialogOpen] = React.useState(false);
 
 
 
@@ -129,7 +131,7 @@ export default function Timer() {
 			const intervalId = setInterval(() => {
 				left_time = left_time - 0.01;
 				setDisplayTime(left_time);
-				if (countDownFlag) {
+				if (count_down_flag) {
 					resolve(null);
 					clearInterval(intervalId);
 				}
@@ -137,8 +139,8 @@ export default function Timer() {
 		});
 		setButtonDisableState({ clear: true, review: false, settings: true, start: true });
 		setDisplayTime(0);
-		if (countDownFlag){
-			countDownFlag = false;
+		if (count_down_flag){
+			count_down_flag = false;
 			setButtonDisableState({
 				clear: false,
 				review: false,
@@ -156,8 +158,12 @@ export default function Timer() {
 	}
 	
 	function onClearButtonClick() {
-		countDownFlag = true;
+		count_down_flag = true;
 		hitRecordDispatch({type: "clear"});
+	}
+
+	function onSettingButtonClick() {
+		setSettingDialogOpen(true);
 	}
 
 	React.useEffect(() => {
@@ -179,7 +185,7 @@ export default function Timer() {
 					<TimerControlButton disabled={buttonDisableState.review} onClick={onReviewButtonClick}>Review</TimerControlButton>
 					<TimerControlButton disabled={buttonDisableState.start} onClick={onStartButtonClick}>Start</TimerControlButton>
 					<TimerControlButton disabled={buttonDisableState.clear} onClick={onClearButtonClick}>Clear</TimerControlButton>
-					<TimerControlButton disabled={buttonDisableState.settings}>Settings</TimerControlButton>
+					<TimerControlButton disabled={buttonDisableState.settings} onClick={onSettingButtonClick}>Settings</TimerControlButton>
 				</Grid>
 				<Divider sx={{my:2}} />
 				<List component="nav" aria-label="main mailbox folders">
@@ -194,6 +200,7 @@ export default function Timer() {
 					)}
 				</List>
 			</Container>
+			<StopplateSettngDialog open={settingDialogOpen} onClose={() => setSettingDialogOpen(false)}/>
 		</>
 	);
 }
