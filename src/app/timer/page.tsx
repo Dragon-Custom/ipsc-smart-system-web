@@ -66,21 +66,31 @@ interface HitRecord {
 function hitRecordReducer(
 	state: HitRecord[],
 	action: {
-		type: "insert",
-		value: HitRecord
+		type: "insert" | "clear",
+		value?: HitRecord
 	},
-) {
+): HitRecord[] {
 	switch (action.type) {
 	case "insert":
-		return [...state, ...[action.value]];
+		if (action.value)
+			return [...state, ...[action.value]];
+		return state;
+	case "clear":
+		return [
+			{
+				absoluteTime: 0,
+				splitTime: 0,
+			},
+		] as HitRecord[];
 	default:
 		throw Error("Unknown action.");
 	}
 }
 
-
+let countDownFlag = false;
 export default function Timer() {
 	const stopplate = BLEStopplateService.GetInstance();
+	// const [countDownFlag, setCountDownFlag] = React.useState(false);
 	const [currentShot, currentShotDispatch] = React.useReducer(currentShotReducer, 0);
 	const [hitRecord, hitRecordDispatch] = React.useReducer(hitRecordReducer, [
 		{
@@ -103,6 +113,7 @@ export default function Timer() {
 
 
 	async function onStartButtonClick() {
+		hitRecordDispatch({type: "clear"});
 		//TODO: implemnent the stopplate connect feature to use this setting
 		// const setting = await stopplate.getSettings();
 		const minRandTime = 1, maxRandTime = 4;
@@ -118,12 +129,36 @@ export default function Timer() {
 			const intervalId = setInterval(() => {
 				left_time = left_time - 0.01;
 				setDisplayTime(left_time);
+				if (countDownFlag) {
+					resolve(null);
+					clearInterval(intervalId);
+				}
 			}, 10);
 		});
 		setButtonDisableState({ clear: true, review: false, settings: true, start: true });
 		setDisplayTime(0);
+		if (countDownFlag){
+			countDownFlag = false;
+			setButtonDisableState({
+				clear: false,
+				review: false,
+				settings: false,
+				start: false,
+			});
+			setDisplayTime(0);
+		}
 	}
 
+	function onReviewButtonClick() {
+		//TODO: implemnent the stopplate connect feature to use this setting
+		// stopplate.removeHitCallback();
+		setButtonDisableState({ clear: false, review: false, settings: false, start: false });
+	}
+	
+	function onClearButtonClick() {
+		countDownFlag = true;
+		hitRecordDispatch({type: "clear"});
+	}
 
 	React.useEffect(() => {
 		setDisplayTime(hitRecord[currentShot].absoluteTime);
@@ -141,9 +176,9 @@ export default function Timer() {
 				</Stack>
 				<Divider sx={{my:2}} />
 				<Grid container rowSpacing={1} columnSpacing={1} columns={2} sx={{height:150}}>
-					<TimerControlButton disabled={buttonDisableState.review}>Review</TimerControlButton>
+					<TimerControlButton disabled={buttonDisableState.review} onClick={onReviewButtonClick}>Review</TimerControlButton>
 					<TimerControlButton disabled={buttonDisableState.start} onClick={onStartButtonClick}>Start</TimerControlButton>
-					<TimerControlButton disabled={buttonDisableState.clear}>Clear</TimerControlButton>
+					<TimerControlButton disabled={buttonDisableState.clear} onClick={onClearButtonClick}>Clear</TimerControlButton>
 					<TimerControlButton disabled={buttonDisableState.settings}>Settings</TimerControlButton>
 				</Grid>
 				<Divider sx={{my:2}} />
