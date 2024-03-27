@@ -5,6 +5,7 @@ import { Button, ButtonProps, Container, Divider, Grid, List, ListItemButton, Li
 import React from "react";
 import StopplateSettngDialog from "./stooplateSettingDialog";
 import { BUZZER_WAVEFORM_OBJECT, beep } from "@/buzzer";
+import { flushSync } from "react-dom";
 
 function getRandomArbitrary(min: number, max: number) {
 	return Math.random() * (max - min) + min;
@@ -37,7 +38,7 @@ function HitRecordItem(props: HitRecordItemProps) {
 			<ListItemIcon>
 				<TimerIcon />
 			</ListItemIcon>
-			<ListItemText primary={props.hitRecord.absoluteTime} secondary={`Shot ${props.index} / Time split ${(props.hitRecord.splitTime).toFixed(2)}`}/>
+			<ListItemText primary={props.hitRecord.absoluteTime.toFixed(2)} secondary={`Shot ${props.index} / Time split ${(props.hitRecord.splitTime).toFixed(2)}`}/>
 		</ListItemButton>
 	);
 }
@@ -68,14 +69,14 @@ interface HitRecord {
 function hitRecordReducer(
 	state: HitRecord[],
 	action: {
-		type: "insert" | "clear",
+		type: "insert" | "clear" | "get",
 		value?: HitRecord
 	},
-): HitRecord[] {
+) {
 	switch (action.type) {
 	case "insert":
 		if (action.value)
-			return [...state, ...[action.value]];
+			return [...[action.value], ...state];
 		return state;
 	case "clear":
 		return [
@@ -83,25 +84,24 @@ function hitRecordReducer(
 				absoluteTime: 0,
 				splitTime: 0,
 			},
-		] as HitRecord[];
+		];
+	case "get":
+		return state;
 	default:
 		throw Error("Unknown action.");
 	}
 }
 
 let break_count_down_flag = false;
-const hit_callback_id = 0;
+let hit_callback_id = 0;
+let start_time = 0;
 export default function Timer() {
 	const stopplate = BLEStopplateService.GetInstance();
 	const [currentShot, currentShotDispatch] = React.useReducer(currentShotReducer, 0);
 	const [hitRecord, hitRecordDispatch] = React.useReducer(hitRecordReducer, [
 		{
 			absoluteTime: 0,
-			splitTime: 1,
-		},
-		{
-			absoluteTime: 10,
-			splitTime: 11,
+			splitTime: 0,
 		},
 	]);
 	const [displayTime, setDisplayTime] = React.useState(0);
@@ -149,11 +149,13 @@ export default function Timer() {
 			setDisplayTime(0);
 			return;
 		}
+		hit_callback_id = stopplate.registerHitCallback(cbFn);
+		start_time = stopplate.getPrecisionTime();
 		beep(setting.buzzer_frequency,BUZZER_WAVEFORM_OBJECT[setting.buzzer_waveform],setting.buzzer_duration*1000, 1.0);
 	}
 
 	function onReviewButtonClick() {
-		// stopplate.removeHitCallback();
+		stopplate.removeHitCallback(hit_callback_id);
 		setButtonDisableState({ clear: false, review: false, settings: false, start: false });
 	}
 	
@@ -166,8 +168,26 @@ export default function Timer() {
 		setSettingDialogOpen(true);
 	}
 
+
+	//NOTE: this ref is important for the callback function which can use the very up-to-date value in the function;
+	const hitReacordStateRef = React.useRef<HitRecord[]>(hitRecord);
+	hitReacordStateRef.current = hitRecord;
+	const cbFn = React.useCallback(function(event: Event, stamp: string)  {
+		const time = parseFloat(stamp);
+		const calcTime = time - start_time;
+		hitRecordDispatch({
+			type: "insert",
+			value: {
+				absoluteTime: calcTime,
+				splitTime: calcTime - hitReacordStateRef.current[0].absoluteTime,
+			},
+		});
+	}, [hitRecord]);
+	
+	
 	React.useEffect(() => {
 		setDisplayTime(hitRecord[currentShot].absoluteTime);
+
 	}, [currentShot, hitRecord]);
 
 	return (

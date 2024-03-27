@@ -1,5 +1,5 @@
 "use client";
-import { BLEStopplateService, StopplateSettingDTO } from "@/ble_stopplate_service";
+import { BLEStopplateService } from "@/ble_stopplate_service";
 import { BUZZER_WAVEFORM_OBJECT } from "@/buzzer";
 import { delay } from "@/utils";
 import {

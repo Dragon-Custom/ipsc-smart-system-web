@@ -336,7 +336,7 @@ export class BLEStopplateService {
 		);
 	}
 
-	private getPrecisionTime() {
+	getPrecisionTime() {
 		return Date.now() * 0.001;
 	}
 }
