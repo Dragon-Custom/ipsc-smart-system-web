@@ -5,6 +5,7 @@ import { Button, ButtonProps, Container, Divider, Grid, List, ListItemButton, Li
 import React from "react";
 import StopplateSettngDialog from "./stooplateSettingDialog";
 import { BUZZER_WAVEFORM_OBJECT, beep } from "@/buzzer";
+import { confirm } from "material-ui-confirm";
 
 function getRandomArbitrary(min: number, max: number) {
 	return Math.random() * (max - min) + min;
@@ -115,6 +116,18 @@ export default function Timer() {
 
 
 	async function onStartButtonClick() {
+		if (!stopplate.checkConnectionState()) {
+			confirm({
+				content: "Please make sure that you have been connect to the stopplate!",
+				title: "Error",
+				hideCancelButton: true,
+				confirmationButtonProps: {
+					variant: "contained",
+					color: "error",
+				},
+			});
+			return;
+		}
 		hitRecordDispatch({type: "clear"});
 		const setting = await stopplate.getSettings();
 		const countDownTime = getRandomArbitrary(setting.countdown_random_time_min, setting.countdown_random_time_max);
