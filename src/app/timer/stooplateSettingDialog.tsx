@@ -245,9 +245,13 @@ export default function StopplateSettngDialog(props: StopplateSettngDialogProps)
 	async function onConnectButtonClick() {
 		setLoading(true);
 		if (await stopplate.scanAndConnectToStopplate() === false) {
+			setTimeout(() => setLoading(false), 2000);
 			setLoading(false);
+			await delay(530);
+			await updateSetting();
 			return;
 		}
+		setTimeout(() => setLoading(false), 2000);
 		await delay(530);
 		await updateSetting();
 		await delay(250);
