@@ -50,10 +50,20 @@ export default function RootLayout({
 						<GlobalLayoutAppBar
 							onMenuClick={() => dispatch("open")}
 						/>
-						<Stack sx={{width:"100%",height:"100vh", top:0, overflowY:"auto"}}>
+						<Stack sx={{width:"100%", top:0}}>
 							<Toolbar />
 							<Paper elevation={1} sx={{height:"100%", p:2}}>{children}</Paper>
 						</Stack>
+						<Paper
+							elevation={1}
+							style={{
+								top: 0,
+								right: 0,
+								left: 0,
+								bottom: 0,
+								position: "absolute",
+								zIndex: -1000,
+							}}/>
 					</ConfirmProvider>
 				</ThemeProvider>
 			</body>

@@ -103,6 +103,114 @@ export default function Timer() {
 			absoluteTime: 0,
 			splitTime: 0,
 		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
+		{
+			absoluteTime: 0,
+			splitTime: 0,
+		},
 	]);
 	const [displayTime, setDisplayTime] = React.useState(0);
 	const [buttonDisableState, setButtonDisableState] = React.useState({
