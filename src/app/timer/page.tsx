@@ -5,7 +5,6 @@ import { Button, ButtonProps, Container, Divider, Grid, List, ListItemButton, Li
 import React from "react";
 import StopplateSettngDialog from "./stooplateSettingDialog";
 import { BUZZER_WAVEFORM_OBJECT, beep } from "@/buzzer";
-import { flushSync } from "react-dom";
 
 function getRandomArbitrary(min: number, max: number) {
 	return Math.random() * (max - min) + min;
@@ -99,114 +98,6 @@ export default function Timer() {
 	const stopplate = BLEStopplateService.GetInstance();
 	const [currentShot, currentShotDispatch] = React.useReducer(currentShotReducer, 0);
 	const [hitRecord, hitRecordDispatch] = React.useReducer(hitRecordReducer, [
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
-		{
-			absoluteTime: 0,
-			splitTime: 0,
-		},
 		{
 			absoluteTime: 0,
 			splitTime: 0,
