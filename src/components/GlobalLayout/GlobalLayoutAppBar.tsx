@@ -19,9 +19,7 @@ function HideOnScroll(props: { children: React.ReactElement }) {
 	// will default to window.
 	// This is only being set here because the demo is in an iframe.
 	// if (typeof window !== "undefined") {
-	const trigger = useScrollTrigger({
-		target: window,
-	});
+	const trigger = useScrollTrigger();
 	return (
 		<Slide appear={false} direction="down" in={!trigger}>
 			{props.children}
