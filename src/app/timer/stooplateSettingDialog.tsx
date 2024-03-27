@@ -248,7 +248,7 @@ export default function StopplateSettngDialog(props: StopplateSettngDialogProps)
 			setLoading(false);
 			return;
 		}
-		await delay(5301141069);
+		await delay(530);
 		await updateSetting();
 		await delay(250);
 		await updateSetting();
