@@ -87,12 +87,17 @@ export class BLEStopplateService {
 
 	private async scanStopplate() {
 		const BLE_UI = await navigator.bluetooth.getAvailability();
-		if (!BLE_UI) return;
-		const BLE_DEVICE = await navigator.bluetooth.requestDevice({
-			filters: [{ services: [SERVICE_UUID] }],
-		});
-		if (!BLE_DEVICE?.gatt) return;
-		return BLE_DEVICE;
+		if (!BLE_UI) return false;
+		try {
+			const BLE_DEVICE = await navigator.bluetooth.requestDevice({
+				filters: [{ services: [SERVICE_UUID] }],
+			});
+			if (!BLE_DEVICE?.gatt) return false;
+			return BLE_DEVICE;
+		} catch (e) {
+			return false;
+		}
+
 	}
 
 	private async connectStopplate(bleDevice: BluetoothDevice) {
@@ -149,7 +154,10 @@ export class BLEStopplateService {
 	}
     
 	public async scanAndConnectToStopplate() {
-		this.bluetooth_device = await this.scanStopplate();
+		const device = await this.scanStopplate();
+		if (device == false)
+			return false;
+		this.bluetooth_device = device;
 		if (!this.bluetooth_device) return;
 		this.bluetooth_gatt_server = await this.connectStopplate(
 			this.bluetooth_device,
@@ -159,9 +167,9 @@ export class BLEStopplateService {
 			this.bluetooth_gatt_server,
 		);
 		const {
-			start_signal_char: STOPPLATE_SIGNAL_CHAR,
-			stopplate_signal_char: SETTING_STORE_CHAR,
-			setting_store_char: START_SIGNAL_CHAR,
+			start_signal_char: START_SIGNAL_CHAR,
+			stopplate_signal_char: STOPPLATE_SIGNAL_CHAR,
+			setting_store_char: SETTING_STORE_CHAR,
 			time_sync_request_char: TIME_SYNC_REQUEST_CHAR,
 			time_sync_write_char: TIME_SYNC_WRITE_CHAR,
 		} = await this.retriveStopplateCharacteristic(
@@ -210,7 +218,7 @@ export class BLEStopplateService {
 				);
 			},
 		);
-		this.performTimeSync();
+		await this.performTimeSync();
 		console.log("BLE connect succes");
 	}
 

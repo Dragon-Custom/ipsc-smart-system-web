@@ -4,6 +4,7 @@ import { Timer as TimerIcon } from "@mui/icons-material";
 import { Button, ButtonProps, Container, Divider, Grid, List, ListItemButton, ListItemButtonProps, ListItemIcon, ListItemText, Stack, Typography } from "@mui/material";
 import React from "react";
 import StopplateSettngDialog from "./stooplateSettingDialog";
+import { BUZZER_WAVEFORM_OBJECT, beep } from "@/buzzer";
 
 function getRandomArbitrary(min: number, max: number) {
 	return Math.random() * (max - min) + min;
@@ -88,10 +89,10 @@ function hitRecordReducer(
 	}
 }
 
-let count_down_flag = false;
+let break_count_down_flag = false;
+const hit_callback_id = 0;
 export default function Timer() {
 	const stopplate = BLEStopplateService.GetInstance();
-	// const [countDownFlag, setCountDownFlag] = React.useState(false);
 	const [currentShot, currentShotDispatch] = React.useReducer(currentShotReducer, 0);
 	const [hitRecord, hitRecordDispatch] = React.useReducer(hitRecordReducer, [
 		{
@@ -116,10 +117,8 @@ export default function Timer() {
 
 	async function onStartButtonClick() {
 		hitRecordDispatch({type: "clear"});
-		//TODO: implemnent the stopplate connect feature to use this setting
-		// const setting = await stopplate.getSettings();
-		const minRandTime = 1, maxRandTime = 4;
-		const countDownTime = getRandomArbitrary(minRandTime, maxRandTime);
+		const setting = await stopplate.getSettings();
+		const countDownTime = getRandomArbitrary(setting.countdown_random_time_min, setting.countdown_random_time_max);
 		setButtonDisableState({ clear: false, review: true, settings: true, start: true });
 		await new Promise((resolve) => {
 			let left_time = countDownTime;
@@ -131,7 +130,7 @@ export default function Timer() {
 			const intervalId = setInterval(() => {
 				left_time = left_time - 0.01;
 				setDisplayTime(left_time);
-				if (count_down_flag) {
+				if (break_count_down_flag) {
 					resolve(null);
 					clearInterval(intervalId);
 				}
@@ -139,8 +138,8 @@ export default function Timer() {
 		});
 		setButtonDisableState({ clear: true, review: false, settings: true, start: true });
 		setDisplayTime(0);
-		if (count_down_flag){
-			count_down_flag = false;
+		if (break_count_down_flag){
+			break_count_down_flag = false;
 			setButtonDisableState({
 				clear: false,
 				review: false,
@@ -148,17 +147,18 @@ export default function Timer() {
 				start: false,
 			});
 			setDisplayTime(0);
+			return;
 		}
+		beep(setting.buzzer_frequency,BUZZER_WAVEFORM_OBJECT[setting.buzzer_waveform],setting.buzzer_duration*1000, 1.0);
 	}
 
 	function onReviewButtonClick() {
-		//TODO: implemnent the stopplate connect feature to use this setting
 		// stopplate.removeHitCallback();
 		setButtonDisableState({ clear: false, review: false, settings: false, start: false });
 	}
 	
 	function onClearButtonClick() {
-		count_down_flag = true;
+		break_count_down_flag = true;
 		hitRecordDispatch({type: "clear"});
 	}
 
@@ -200,7 +200,10 @@ export default function Timer() {
 					)}
 				</List>
 			</Container>
-			<StopplateSettngDialog open={settingDialogOpen} onClose={() => setSettingDialogOpen(false)}/>
+			{settingDialogOpen ? 
+				<StopplateSettngDialog open={settingDialogOpen} onClose={() => setSettingDialogOpen(false)}/>
+				: <></>
+			}
 		</>
 	);
 }
