@@ -25,7 +25,7 @@ interface HitRecordItemProps extends ListItemButtonProps {
 	index: number;
 	selectedIndex: number;
 	dispatch: (value: number) => unknown;
-	hitRecord: HitRecord;
+	value: HitRecord;
 }
 function HitRecordItem(props: HitRecordItemProps) {
 	const { index: INDEX, selectedIndex: SELECTED_INDEX, dispatch, ...BTN_PROP } = props;
@@ -38,7 +38,7 @@ function HitRecordItem(props: HitRecordItemProps) {
 			<ListItemIcon>
 				<TimerIcon />
 			</ListItemIcon>
-			<ListItemText primary={props.hitRecord.absoluteTime.toFixed(2)} secondary={`Shot ${props.index} / Time split ${(props.hitRecord.splitTime).toFixed(2)}`}/>
+			<ListItemText primary={props.value.absoluteTime.toFixed(2)} secondary={`Shot ${props.index} / Time split ${(props.value.splitTime).toFixed(2)}`}/>
 		</ListItemButton>
 	);
 }
@@ -182,7 +182,7 @@ export default function Timer() {
 
 
 	//NOTE: this ref is important for the callback function which can use the very up-to-date value in the function;
-	const hitReacordStateRef = React.useRef<HitRecord[]>(hitRecord);
+	const hitReacordStateRef = React.useRef(hitRecord);
 	hitReacordStateRef.current = hitRecord;
 	const cbFn = React.useCallback(function(event: Event, stamp: string)  {
 		const time = parseFloat(stamp);
@@ -227,7 +227,7 @@ export default function Timer() {
 							dispatch={(value) => currentShotDispatch({ type: "set", value })}
 							index={k}
 							selectedIndex={currentShot}
-							hitRecord={v}
+							value={v}
 						/>,
 					)}
 				</List>
