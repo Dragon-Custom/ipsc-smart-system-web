@@ -6,6 +6,8 @@ import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
+import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the grid
+import "ag-grid-community/styles/ag-theme-alpine.css"; // Optional Theme applied to the grid
 import GlobalLayoutAppBar from "@/components/GlobalLayout/GlobalLayoutAppBar";
 import { Paper, Stack, ThemeProvider, Toolbar, createTheme } from "@mui/material";
 import { ConfirmProvider } from "material-ui-confirm";
