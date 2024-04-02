@@ -10,6 +10,9 @@ import GlobalLayoutAppBar from "@/components/GlobalLayout/GlobalLayoutAppBar";
 import { Paper, Stack, ThemeProvider, Toolbar, createTheme } from "@mui/material";
 import { ConfirmProvider } from "material-ui-confirm";
 import GlobalLayoutSideBar from "@/components/GlobalLayout/GlobalLayoutSideBar";
+import { ApolloProvider } from "@apollo/client";
+import { client } from "./apolloClient";
+
 
 const INTER = inter({ subsets: ["latin"] });
 
@@ -18,6 +21,10 @@ const THEME = createTheme({
 		mode: "dark",
 	},
 });
+
+
+
+
 
 type SidebarAction = "close" | "open";
 function sideBarReducer(state: boolean, action: SidebarAction): boolean {
@@ -41,30 +48,32 @@ export default function RootLayout({
 		<html lang="en">
 			<body className={INTER.className}>
 				<ThemeProvider theme={THEME}>
-					<ConfirmProvider>
-						<GlobalLayoutSideBar
-							open={sideBarState}
-							onClose={() => dispatch("close")}
-							onOpen={() => dispatch("open")}
-						/>
-						<GlobalLayoutAppBar
-							onMenuClick={() => dispatch("open")}
-						/>
-						<Stack sx={{width:"100%", top:0}}>
-							<Toolbar />
-							<Paper elevation={1} sx={{height:"100%", p:2}}>{children}</Paper>
-						</Stack>
-						<Paper
-							elevation={1}
-							style={{
-								top: 0,
-								right: 0,
-								left: 0,
-								bottom: 0,
-								position: "absolute",
-								zIndex: -1000,
-							}}/>
-					</ConfirmProvider>
+					<ApolloProvider client={client}>
+						<ConfirmProvider>
+							<GlobalLayoutSideBar
+								open={sideBarState}
+								onClose={() => dispatch("close")}
+								onOpen={() => dispatch("open")}
+							/>
+							<GlobalLayoutAppBar
+								onMenuClick={() => dispatch("open")}
+							/>
+							<Stack sx={{width:"100%", top:0}}>
+								<Toolbar />
+								<Paper elevation={1} sx={{height:"100%", p:2}}>{children}</Paper>
+							</Stack>
+							<Paper
+								elevation={1}
+								style={{
+									top: 0,
+									right: 0,
+									left: 0,
+									bottom: 0,
+									position: "absolute",
+									zIndex: -1000,
+								}}/>
+						</ConfirmProvider>
+					</ApolloProvider>
 				</ThemeProvider>
 			</body>
 		</html>

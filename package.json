@@ -11,6 +11,7 @@
         "gql:sdk": "graphql-codegen"
     },
     "dependencies": {
+        "@apollo/client": "^3.9.10",
         "@emotion/cache": "^11.11.0",
         "@emotion/react": "^11.11.4",
         "@emotion/server": "^11.11.0",
