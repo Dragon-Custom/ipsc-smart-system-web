@@ -18,8 +18,8 @@ export interface ShooterCardProps {
 
 
 const DeleteOneShooterMutation = gql`
-	mutation DeleteOneShooter($id: Int!){
-		deleteOneShooter(where: {id: $id}) {
+	mutation DeleteOneShooter($where: ShooterWhereUniqueInput!){
+		deleteOneShooter(where: $where) {
 			id
 		}
 	}
