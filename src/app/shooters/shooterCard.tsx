@@ -2,7 +2,7 @@ import React from "react";
 import { Delete } from "@mui/icons-material";
 import { IconButton, ListItem, ListItemAvatar, ListItemButton, ListItemText, Paper, Typography } from "@mui/material";
 import { gql, useMutation } from "@apollo/client";
-import { Mutation } from "@/gql/graphql";
+import { Mutation, MutationDeleteOneShooterArgs } from "@/gql/graphql";
 import { useConfirm } from "material-ui-confirm";
 
 
@@ -26,7 +26,7 @@ const DeleteOneShooterMutation = gql`
 `;
 
 export default function ShooterCard(props: ShooterCardProps) {
-	const [ deleteShooter ] = useMutation<Mutation>(DeleteOneShooterMutation);
+	const [ deleteShooter ] = useMutation<Mutation["deleteOneShooter"], MutationDeleteOneShooterArgs>(DeleteOneShooterMutation);
 	const muiConfirm = useConfirm();
 
 
@@ -39,7 +39,9 @@ export default function ShooterCard(props: ShooterCardProps) {
 		}).then((v) => {
 			deleteShooter({
 				variables: {
-					id: props.id,
+					where: {
+						id: props.id,
+					},
 				},
 			});
 		}).catch();
