@@ -36,7 +36,7 @@ export default function ShooterCard(props: ShooterCardProps) {
 			title: "Confirm prompt",
 			confirmationText: "Confirm",
 			confirmationButtonProps: { color: "error" },
-		}).then((v) => {
+		}).then(() => {
 			deleteShooter({
 				variables: {
 					where: {
