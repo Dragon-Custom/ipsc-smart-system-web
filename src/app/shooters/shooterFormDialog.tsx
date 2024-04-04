@@ -35,6 +35,7 @@ export interface ShooterFormDialogProps {
 		id: number,
 		name: string,
 		division: Division,
+		email: string,
 	};
 }
 export default function ShooterFormDialog(props: ShooterFormDialogProps) {
@@ -56,6 +57,9 @@ export default function ShooterFormDialog(props: ShooterFormDialogProps) {
 						division: {
 							set: formJson.division as Division,
 						},
+						email: {
+							set: formJson.email as Division,
+						},
 					},
 					where: {
 						id: props.editShooter.id,
@@ -73,6 +77,7 @@ export default function ShooterFormDialog(props: ShooterFormDialogProps) {
 					data: {
 						name: formJson.name as string,
 						division: formJson.division as Division,
+						email: formJson.email as string,
 					},
 				},
 			})
@@ -99,7 +104,7 @@ export default function ShooterFormDialog(props: ShooterFormDialogProps) {
 				<TextField
 					autoFocus
 					required
-					margin="dense"
+					margin="normal"
 					name="name"
 					label="Name"
 					type="text"
@@ -107,7 +112,18 @@ export default function ShooterFormDialog(props: ShooterFormDialogProps) {
 					variant="outlined"
 					defaultValue={props.editShooter?.name}
 				/>
-				<FormControl fullWidth>
+				<TextField
+					autoFocus
+					required
+					margin="normal"
+					name="email"
+					label="Email"
+					type="text"
+					fullWidth
+					variant="outlined"
+					defaultValue={props.editShooter?.email}
+				/>
+				<FormControl fullWidth margin="normal">
 					<InputLabel>Division</InputLabel>
 					<Select
 						name="division"

@@ -15,6 +15,7 @@ const FindManyShooterQuery = gql`
 			id
 			createAt
 			name
+			email
 		}
 	}
 `;
@@ -54,10 +55,8 @@ export default function Shooters() {
 					<Box key={k}>
 						<ShooterCard
 							createDate={new Date(v.createAt).toLocaleDateString() + " " + new Date(v.createAt).toLocaleTimeString()}
-							division={v.division}
-							name={v.name}
-							id={v.id}
 							showMutationButton
+							{...v}
 						/>
 						<Divider sx={{ my: .5}} />
 					</Box>

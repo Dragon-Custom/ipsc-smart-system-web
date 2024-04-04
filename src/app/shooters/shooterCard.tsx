@@ -12,7 +12,8 @@ export interface ShooterCardProps {
 	name: string;
 	createDate: string;
 	division: Division;
-	showMutationButton?: boolean
+	showMutationButton?: boolean;
+	email: string;
 }
 
 
@@ -109,9 +110,7 @@ export default function ShooterCard(props: ShooterCardProps) {
 				open={editShooterFormOpen}
 				onClose={closeEditShooterFormOpen}
 				editShooter={{
-					id: props.id,
-					division: props.division,
-					name: props.name,
+					...props,
 				}}
 			/>
 		</>
