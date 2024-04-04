@@ -1,10 +1,10 @@
 "use client";
 import React from "react";
-import { gql, useQuery } from "@apollo/client";
+import { gql, useQuery, useSubscription } from "@apollo/client";
 import { Query } from "@/gql/graphql";
 // import { AgGridReact } from "ag-grid-react";
 import ShooterCard from "./shooterCard";
-import { Divider, List, SpeedDial, SpeedDialAction, SpeedDialIcon, Typography } from "@mui/material";
+import { Box, Divider, List, SpeedDial, SpeedDialAction, SpeedDialIcon, Typography } from "@mui/material";
 import { Add } from "@mui/icons-material";
 import ShooterFormDialog from "./shooterFormDialog";
 
@@ -20,8 +20,21 @@ const FindManyShooterQuery = gql`
 `;
 
 
+const SubscriptShootersChangeSubscription = gql`
+	subscription SubscriptShootersChange{
+    	subscriptShootersChange
+	}
+`;
+
 export default function Shooters() {
-	const { data } = useQuery<Query>(FindManyShooterQuery);
+	const { data, refetch } = useQuery<Query>(FindManyShooterQuery);
+	useSubscription(SubscriptShootersChangeSubscription, {
+		onData() {
+			refetch();
+		},
+		shouldResubscribe: false,
+	});
+
 	const [createShooterFormOpen, setCreateShooterFormOpen] = React.useState(false);
 
 	function onCreateShooterButtonClick() {
@@ -37,10 +50,9 @@ export default function Shooters() {
 			<Typography variant="h4" p={2}>Shooter list: </Typography>
 			<List>
 
-				{data?.findManyShooter.toSorted((a,b)=> (a.id-b.id)).map((v, k) => (
-					<>
+				{data?.findManyShooter.toSorted((a, b) => (a.id - b.id)).map((v, k) => (
+					<Box key={k}>
 						<ShooterCard
-							key={k}
 							createDate={new Date(v.createAt).toLocaleDateString() + " " + new Date(v.createAt).toLocaleTimeString()}
 							division={v.division}
 							name={v.name}
@@ -48,7 +60,7 @@ export default function Shooters() {
 							showMutationButton
 						/>
 						<Divider sx={{ my: .5}} />
-					</>
+					</Box>
 				))}
 			</List>
 			<SpeedDial
