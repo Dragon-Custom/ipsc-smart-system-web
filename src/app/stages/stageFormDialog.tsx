@@ -1,4 +1,6 @@
 import ImageCropper from "@/components/ImageCropper";
+import { Query } from "@/gql/graphql";
+import { gql, useQuery } from "@apollo/client";
 import { FileUpload } from "@mui/icons-material";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, Grid, InputAdornment, InputLabel, MenuItem,  Select, Stack, TextField,  styled } from "@mui/material";
 import React from "react";
@@ -26,11 +28,21 @@ const VisuallyHiddenInput = styled("input")({
 });
 
 
+const FindManyShooterQuery = gql`
+	query {
+		findManyShooter {
+			id
+			name
+		}
+	}
+`;
+
 export interface StageFormDialogProps {
 	onClose: () => void;
 	open: boolean;
 }
 export default function StageFormDialog(props: StageFormDialogProps) {
+	const allShooter = useQuery<Query>(FindManyShooterQuery);
 	const [stageAttr, setStageAttr] = React.useState({
 		minRounds: 0,
 		maxScore: 0,
@@ -44,6 +56,9 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 		const formData = new FormData(event.currentTarget);
 		const formJson = Object.fromEntries((formData).entries());
 		console.log(formJson);
+	}
+	function onCreateStageFormChange() {
+
 	}
 
 	const onPicturePassIn = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,6 +95,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 				PaperProps={{
 					component: "form",
 					onSubmit: onCreateStageFormSubmit,
+					onChange: onCreateStageFormChange,
 				}}
 			>
 				<DialogTitle>Craete new stage</DialogTitle>
@@ -90,7 +106,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 							startIcon={<FileUpload />}
 							component="label"
 						>
-							<VisuallyHiddenInput type="file" accept="image/*" onChange={onPicturePassIn}/>
+							<VisuallyHiddenInput type="file" accept="image/*" onChange={onPicturePassIn} name="image" value={stageImage}/>
 							Upload the stage picture
 						</Button>
 						<img src={stageImage} />
@@ -118,7 +134,12 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 								label="Designer"
 								defaultValue={1}
 							>
-								<MenuItem value={1}>aefklmklmfklmfw3klm</MenuItem>
+								{!allShooter.data ?
+									<MenuItem value={1}>Loading shooter list...</MenuItem> :
+									allShooter.data?.findManyShooter.map((v) =>
+										<MenuItem value={v.id} key={v.id}>{v.name}</MenuItem>,
+									)
+								}
 							</Select>
 						</FormControl>
 						<Grid container justifyContent={"space-around"} spacing={1}>
