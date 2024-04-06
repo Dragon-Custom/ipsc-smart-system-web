@@ -2,7 +2,7 @@ import ImageCropper from "@/components/ImageCropper";
 import { Mutation, MutationCreateOneStageArgs, Query } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { FileUpload } from "@mui/icons-material";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, Grid, InputAdornment, InputLabel, MenuItem,  Select, Stack, TextField,  styled } from "@mui/material";
+import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, Grid, InputAdornment, InputLabel, MenuItem,  Modal,  Select, Stack, TextField,  styled } from "@mui/material";
 import React from "react";
 
 
@@ -92,6 +92,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 	});
 	const [cropperOpen, setCropperOpne] = React.useState(false);
 	const [stageImage, setStageImage] = React.useState("");
+	const [loading, setLoading] = React.useState(false);
 
 	React.useEffect(() => {
 		allShooter.refetch();
@@ -100,6 +101,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 
 	async function onCreateStageFormSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
+		setLoading(true);
 		const formData = extactFromData(event);
 		console.log(formData);
 		const papers = parseInt(formData.papers);
@@ -109,7 +111,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 		const designer = parseInt(formData.designer);
 		const walkthroughTime = parseInt(formData.walkthroughTime);
 		const imgId = await uploadImage(stageImage);
-		createStage({
+		await createStage({
 			variables: {
 				data: {
 					image: {
@@ -132,6 +134,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 				},
 			},
 		});
+		setLoading(false);
 	}
 	function onCreateStageFormChange(event: React.FormEvent<HTMLFormElement>) {
 		const formData = extactFromData(event);
@@ -175,6 +178,11 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 
 	return (
 		<>
+			<Modal
+				open={loading}
+			>
+				<CircularProgress />
+			</Modal>
 			<ImageCropper
 				open={cropperOpen}
 				onClose={onImageCropperClose}
