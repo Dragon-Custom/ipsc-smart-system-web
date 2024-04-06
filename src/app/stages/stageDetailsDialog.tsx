@@ -1,8 +1,9 @@
 "use client";
-import { Query, QueryFindUniqueStageArgs } from "@/gql/graphql";
+import { Mutation, Query, QueryFindUniqueStageArgs } from "@/gql/graphql";
 import useGraphqlImage from "@/hooks/useGraphqlImage";
-import { gql, useQuery } from "@apollo/client";
-import { Dialog, DialogContent, DialogTitle, Divider, Typography } from "@mui/material";
+import { gql, useMutation, useQuery } from "@apollo/client";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Typography } from "@mui/material";
+import { useConfirm } from "material-ui-confirm";
 import React from "react";
 
 const FindUniqueStage = gql`
@@ -24,6 +25,13 @@ const FindUniqueStage = gql`
         }
     }
 `;
+const DeleteStageMutation = gql`
+    mutation($where: StageWhereUniqueInput!) {
+		deleteOneStage(where: $where){
+			id
+		}
+	}
+`;
 
 export interface StageDetialsDialogProps {
     open: boolean;
@@ -39,6 +47,34 @@ export default function StageDetialsDialog(props: StageDetialsDialogProps) {
 		},
 	});
 	const image = useGraphqlImage(stage.data?.findUniqueStage?.imageId);
+	const confirm = useConfirm();
+	const [ deleteStage ] = useMutation<Mutation>(DeleteStageMutation);
+
+	function onDeleteButtonClick() {
+		confirm({
+			title: `Are you sure you want to delete the stage ${stage.data?.findUniqueStage?.name} ?`,
+			confirmationText: "Delete",
+			confirmationButtonProps: {
+				color: "error",
+			},
+		})
+			.then(() => {
+				deleteStage({
+					variables: {
+						where: {
+							id: props.stageId,
+						},
+					},
+				});
+			})
+			.catch();
+	}
+
+	function onEditButtonClick() {
+		
+	}
+
+
 
 	return (
 		<>
@@ -69,6 +105,10 @@ export default function StageDetialsDialog(props: StageDetialsDialogProps) {
 						</DialogContent>
 					</>
 				}
+				<DialogActions>
+					<Button color="error" variant="contained" onClick={onDeleteButtonClick}>Delete</Button>
+					<Button variant="outlined" onClick={onEditButtonClick}>Edit</Button>
+				</DialogActions>
 			</Dialog>
 		</>
 	);

@@ -45,65 +45,54 @@ export default function ImageCropper(props: ImageCropperProps) {
 			onClose={props.onClose}
 			maxWidth={"md"}
 			fullWidth
-
 		>
 			<DialogTitle>Crop the image</DialogTitle>
-			<DialogContent
-				sx={{
-					height: "70vh",
-				}}
-			>
-				<Paper>
-					<Cropper
-						style={{
-							containerStyle: {
-								top: "8%",
-								left: "0%",
-								bottom: "20%",
-								right: "0%",
-								overflow: "hidden",
-								position: "absolute",
-							},
-						}}
-						maxZoom={10}
-						minZoom={0.1}
-						image={props.imageSrc}
-						crop={crop}
-						zoom={zoom}
-						rotation={rotation}
-						aspect={props.aspectRatio}
-						onCropChange={setCrop}
-						onZoomChange={setZoom}
-						onCropComplete={onCropComplete}
-						objectFit={"cover"}
-					/>
-				</Paper>
-				<Stack style={{
-					position: "absolute",
-					top: "80%",
-					left: "10%",
-					right: "10%",
+			<DialogContent>
+				<div style={{
+					display: "flex",
+					flex: "auto",
+					flexDirection: "column",
 				}}>
-					<FormControl>
-						<FormLabel>Rotation</FormLabel>
-						<Slider
-							value={rotation}
-							min={0}
-							max={360}
-							onChange={(e,v) => setRotation(v as number)}
+					<div style={{
+						position: "relative",
+						height: "35vh",
+					}}>
+						<Cropper
+							maxZoom={10}
+							minZoom={0.1}
+							image={props.imageSrc}
+							crop={crop}
+							zoom={zoom}
+							rotation={rotation}
+							aspect={props.aspectRatio}
+							onCropChange={setCrop}
+							onZoomChange={setZoom}
+							onCropComplete={onCropComplete}
+							objectFit={"cover"}
 						/>
-					</FormControl>
-					<FormControl>
-						<FormLabel>Zoom</FormLabel>
-						<Slider
-							min={0}
-							max={10}
-							step={0.0001}
-							value={zoom}
-							onChange={(e,v) => setZoom(v as number)}
-						/>
-					</FormControl>
-				</Stack>
+					</div>
+					<Stack>
+						<FormControl>
+							<FormLabel>Rotation</FormLabel>
+							<Slider
+								value={rotation}
+								min={0}
+								max={360}
+								onChange={(e,v) => setRotation(v as number)}
+							/>
+						</FormControl>
+						<FormControl>
+							<FormLabel>Zoom</FormLabel>
+							<Slider
+								min={0}
+								max={10}
+								step={0.0001}
+								value={zoom}
+								onChange={(e,v) => setZoom(v as number)}
+							/>
+						</FormControl>
+					</Stack>
+				</div>
 			</DialogContent>
 			<DialogActions>
 				<Button onClick={props.onClose}>Cancel</Button>
