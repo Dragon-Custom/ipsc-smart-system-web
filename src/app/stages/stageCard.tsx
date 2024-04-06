@@ -1,15 +1,9 @@
 import React from "react";
 import { Box, Card, CardActionArea, CardContent, CardMedia, Stack, Typography, useMediaQuery } from "@mui/material";
-import { gql, useQuery } from "@apollo/client";
-import { Query } from "@/gql/graphql";
+import useGraphqlImage from "@/hooks/useGraphqlImage";
 
 
 
-const GetImageQuery = gql`
-	query($id: String!){
-		getImage(id: $id)
-	}
-`;
 
 
 export interface StageCardProps {
@@ -24,17 +18,8 @@ export interface StageCardProps {
 }
 
 export default function StageCard(props: StageCardProps) {
-	const [base64Img, setBase64Img] = React.useState("");
 	const matches = useMediaQuery((theme) => theme.breakpoints.up("sm"));
-
-	useQuery<Query>(GetImageQuery, {
-		variables: {
-			id: props.imageId,
-		},
-		onCompleted(data) {
-			setBase64Img("data:image/jpeg;base64," + data.getImage);
-		},
-	});
+	const base64Img = useGraphqlImage(props.imageId);
 
 	return (
 		<>
