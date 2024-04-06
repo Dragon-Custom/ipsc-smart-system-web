@@ -1,5 +1,6 @@
 import ImageCropper from "@/components/ImageCropper";
-import { Mutation, MutationCreateOneStageArgs, Query } from "@/gql/graphql";
+import { Mutation, MutationCreateOneStageArgs, MutationUpdateOneStageArgs, Query } from "@/gql/graphql";
+import useGraphqlImage from "@/hooks/useGraphqlImage";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { FileUpload } from "@mui/icons-material";
 import { Backdrop, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, Grid, InputAdornment, InputLabel, MenuItem,   Select, Stack, TextField,  styled } from "@mui/material";
@@ -40,7 +41,14 @@ const FindManyShooterQuery = gql`
 const CreateOneStageMutation = gql`
 	mutation($data: StageCreateInput!){
 		createOneStage(data: $data) {
-			createAt
+			id
+		}
+	}
+`;
+const UpdateOneStageMutation = gql`
+	mutation($where: StageWhereUniqueInput!, $data: StageUpdateInput!){
+		updateOneStage(where: $where,data: $data) {
+			id
 		}
 	}
 `;
@@ -81,10 +89,24 @@ async function uploadImage(base64url: string): Promise<ImageID> {
 export interface StageFormDialogProps {
 	onClose: () => void;
 	open: boolean;
+	//if editStage not null => the dialog gets into edit mode
+	editStage?: {
+		id: number;
+		imageId: string;
+		name: string;
+		description?: string;
+		designerId: number;
+		papers: number;
+		noshoots: number;
+		poppers: number;
+		gunCondition: number;
+		walkthroughTime: number;
+	}
 }
 export default function StageFormDialog(props: StageFormDialogProps) {
 	const allShooter = useQuery<Query>(FindManyShooterQuery);
 	const [createStage] = useMutation<Mutation["createOneStage"], MutationCreateOneStageArgs>(CreateOneStageMutation);
+	const [updateStage] = useMutation<Mutation["updateOneStage"], MutationUpdateOneStageArgs>(UpdateOneStageMutation);
 	const [stageAttr, setStageAttr] = React.useState({
 		minRounds: 0,
 		maxScore: 0,
@@ -93,10 +115,13 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 	const [cropperOpen, setCropperOpne] = React.useState(false);
 	const [stageImage, setStageImage] = React.useState("");
 	const [loading, setLoading] = React.useState(false);
+	let edit_image: string;
+	if (props.editStage)
+		edit_image = useGraphqlImage(props.editStage.imageId);
 
 	React.useEffect(() => {
 		allShooter.refetch();
-		setStageImage("");
+		setStageImage(edit_image ?? "");
 	}, [props]);
 
 	async function onCreateStageFormSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -110,33 +135,81 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 		const gunCondition = parseInt(formData.gunCondition);
 		const designer = parseInt(formData.designer);
 		const walkthroughTime = parseInt(formData.walkthroughTime);
-		const imgId = await uploadImage(stageImage);
-		await createStage({
-			variables: {
-				data: {
-					image: {
-						connect: {
-							id: imgId,
+		let img_id = props.editStage?.imageId ?? "";
+		if (edit_image !== stageImage) {
+			img_id = await uploadImage(stageImage);
+		}
+
+		if (props.editStage) {
+			await updateStage({
+				variables: {
+					data: {
+						image: {
+							connect: {
+								id: img_id,
+							},
+						},
+						name: {
+							set: formData.name,
+						},
+						description: {
+							set: formData.description,
+						},
+						papers: {
+							set: papers,
+						},
+						poppers: {
+							set: poppers,
+						},
+						noshoots: {
+							set: noshoots,
+						},
+						gunCondition: {
+							set: gunCondition,
+						},
+						designer: {
+							connect: {
+								id: designer,
+							},
+						},
+						walkthroughTime: {
+							set: walkthroughTime,
 						},
 					},
-					name: formData.name,
-					description: formData.description,
-					papers,
-					poppers,
-					noshoots,
-					gunCondition,
-					designer: {
-						connect: {
-							id: designer,
-						},
+					where: {
+						id: props.editStage.id,
 					},
-					walkthroughTime,
 				},
-			},
-		});
+			});
+		} else {
+			await createStage({
+				variables: {
+					data: {
+						image: {
+							connect: {
+								id: img_id,
+							},
+						},
+						name: formData.name,
+						description: formData.description,
+						papers,
+						poppers,
+						noshoots,
+						gunCondition,
+						designer: {
+							connect: {
+								id: designer,
+							},
+						},
+						walkthroughTime,
+					},
+				},
+			});
+		}
 		setLoading(false);
 		props.onClose();
 	}
+
 	function onCreateStageFormChange(event: React.FormEvent<HTMLFormElement>) {
 		const formData = extactFromData(event);
 		console.log(formData);
@@ -204,7 +277,10 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 					onChange: onCreateStageFormChange,
 				}}
 			>
-				<DialogTitle>Craete new stage</DialogTitle>
+				{props.editStage ?
+					<DialogTitle>Edit stage</DialogTitle> :
+					<DialogTitle>Craete new stage</DialogTitle>
+				}
 				<DialogContent>
 					<Stack gap={2}>
 						<Button
@@ -224,6 +300,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 							type="text"
 							fullWidth
 							variant="outlined"
+							defaultValue={props.editStage?.name}
 						/>
 						<TextField
 							name="description"
@@ -232,13 +309,14 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 							multiline
 							fullWidth
 							variant="outlined"
+							defaultValue={props.editStage?.description}
 						/>
 						<FormControl fullWidth required>
 							<InputLabel>Designer</InputLabel>
 							<Select
 								name="designer"
 								label="Designer"
-								defaultValue={1}
+								defaultValue={props.editStage?.designerId ?? 1}
 							>
 								{!allShooter.data ?
 									<MenuItem value={1}>Loading shooter list...</MenuItem> :
@@ -260,6 +338,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 									inputProps={{
 										min: 0,
 									}}
+									defaultValue={props.editStage?.papers}
 								/>
 							</Grid>
 							<Grid item xs={12/2} sm={12/3}>
@@ -273,6 +352,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 									inputProps={{
 										min: 0,
 									}}
+									defaultValue={props.editStage?.noshoots}
 								/>
 							</Grid>
 							<Grid item xs={12} sm={12/3}>
@@ -286,6 +366,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 									inputProps={{
 										min: 0,
 									}}
+									defaultValue={props.editStage?.poppers}
 								/>
 							</Grid>
 						</Grid>
@@ -294,7 +375,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 							<Select
 								name="gunCondition"
 								label="Gun condition"
-								defaultValue={1}
+								defaultValue={props.editStage?.gunCondition ?? 1}
 							>
 								{[1, 2, 3].map(v =>
 									<MenuItem value={v} key={v}>Condition {v}</MenuItem>,
@@ -314,6 +395,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 								},
 								endAdornment: <InputAdornment position="end">minutes</InputAdornment>,
 							}}
+							defaultValue={props.editStage?.walkthroughTime}
 						/>
 						<Grid container borderRadius={1}>
 							<StageAttr item borderRadius={"inherit"} xs={12/2} sm={12/3}>Max. score: {stageAttr.maxScore}</StageAttr>
@@ -324,7 +406,10 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 				</DialogContent>
 				<DialogActions>
 					<Button onClick={props.onClose}>Cancel</Button>
-					<Button type="submit">Create</Button>
+					{props.editStage ?
+						<Button type="submit">Edit</Button> :
+						<Button type="submit">Create</Button>
+					}
 				</DialogActions>
 			</Dialog>
 		</>
