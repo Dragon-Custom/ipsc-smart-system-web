@@ -2,7 +2,7 @@ import ImageCropper from "@/components/ImageCropper";
 import { Mutation, MutationCreateOneStageArgs, Query } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { FileUpload } from "@mui/icons-material";
-import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, Grid, InputAdornment, InputLabel, MenuItem,  Modal,  Select, Stack, TextField,  styled } from "@mui/material";
+import { Backdrop, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, Grid, InputAdornment, InputLabel, MenuItem,   Select, Stack, TextField,  styled } from "@mui/material";
 import React from "react";
 
 
@@ -135,6 +135,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 			},
 		});
 		setLoading(false);
+		props.onClose();
 	}
 	function onCreateStageFormChange(event: React.FormEvent<HTMLFormElement>) {
 		const formData = extactFromData(event);
@@ -178,11 +179,14 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 
 	return (
 		<>
-			<Modal
+			<Backdrop
 				open={loading}
+				sx={{
+					zIndex: 1000000000000,
+				}}
 			>
 				<CircularProgress />
-			</Modal>
+			</Backdrop>
 			<ImageCropper
 				open={cropperOpen}
 				onClose={onImageCropperClose}

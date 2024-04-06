@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Card, CardActionArea, CardContent, CardMedia, Stack, Typography, useMediaQuery } from "@mui/material";
 import useGraphqlImage from "@/hooks/useGraphqlImage";
+import StageDetialsDialog from "./stageDetailsDialog";
 
 
 
@@ -20,9 +21,22 @@ export interface StageCardProps {
 export default function StageCard(props: StageCardProps) {
 	const matches = useMediaQuery((theme) => theme.breakpoints.up("sm"));
 	const base64Img = useGraphqlImage(props.imageId);
+	const [detailsOpen, setDetailsOpen] = React.useState(false);
+
+	function onCardClick() {
+		setDetailsOpen(true);
+	}
+	function onDetailsClose() {
+		setDetailsOpen(false);
+	}
 
 	return (
 		<>
+			<StageDetialsDialog
+				open={detailsOpen}
+				onClose={onDetailsClose}
+				stageId={props.id}
+			/>
 			<Card
 				sx={{
 					m: 2,
@@ -32,7 +46,7 @@ export default function StageCard(props: StageCardProps) {
 					},
 				}
 				}>
-				<CardActionArea>
+				<CardActionArea onClick={onCardClick}>
 					<Stack direction={matches ? "row": "column"}>
 						<CardMedia
 							component="img"
