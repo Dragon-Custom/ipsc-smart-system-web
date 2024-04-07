@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Card, CardActionArea, CardContent, CardMedia, Chip, Stack, Typography, useMediaQuery } from "@mui/material";
+import { Box, Card, CardActionArea, CardContent, CardMedia, Chip, Stack, Theme, Typography, useMediaQuery } from "@mui/material";
 import useGraphqlImage from "@/hooks/useGraphqlImage";
 import StageDetialsDialog from "./stageDetailsDialog";
 import { StageTag } from "@/gql/graphql";
@@ -17,11 +17,11 @@ export interface StageCardProps {
 	imageId: string;
 	stageType: string;
 	createAt: string;
-	tags: StageTag;
+	tags: StageTag[];
 }
 
 export default function StageCard(props: StageCardProps) {
-	const matches = useMediaQuery((theme) => theme.breakpoints.up("sm"));
+	const matches = useMediaQuery((theme: Theme) => theme.breakpoints.up("sm"));
 	const base64Img = useGraphqlImage(props.imageId);
 	const [detailsOpen, setDetailsOpen] = React.useState(false);
 
@@ -103,13 +103,15 @@ export default function StageCard(props: StageCardProps) {
 									</>
 									: <></>}
 								{props.tags ?
-									<Chip
-										key={props.tags.id}
-										sx={{
-											backgroundColor: props.tags.color,
-										}}
-										label={props.tags.title}
-									/>
+									props.tags.map((v) =>
+										<Chip
+											key={v.id}
+											sx={{
+												backgroundColor: v.color,
+											}}
+											label={v.title}
+										/>,
+									)
 									: <></>}
 							</CardContent>
 						</Box>

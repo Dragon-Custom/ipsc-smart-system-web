@@ -1,5 +1,5 @@
 import ImageCropper from "@/components/ImageCropper";
-import { Mutation, MutationCreateOneStageArgs, MutationUpdateOneStageArgs, Query } from "@/gql/graphql";
+import { Mutation, MutationCreateOneStageArgs, MutationUpdateOneStageArgs, Query, StageTag, TagOnStageCreateNestedManyWithoutStageInput, TagOnStageWhereUniqueInput } from "@/gql/graphql";
 import useGraphqlImage from "@/hooks/useGraphqlImage";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { FileUpload } from "@mui/icons-material";
@@ -110,7 +110,7 @@ export interface StageFormDialogProps {
 		poppers: number;
 		gunCondition: number;
 		walkthroughTime: number;
-		tagId?: number;
+		tags?: StageTag[];
 	}
 }
 export default function StageFormDialog(props: StageFormDialogProps) {
@@ -125,7 +125,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 	});
 	const [cropperOpen, setCropperOpne] = React.useState(false);
 	const [stageImage, setStageImage] = React.useState("");
-	const [selectedTag, setSelectedTag] = React.useState<number>(0);
+	const [selectedTag, setSelectedTag] = React.useState<number[]>([]);
 	const [loading, setLoading] = React.useState(false);
 	let edit_image: string;
 	if (props.editStage)
@@ -138,6 +138,10 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 
 	async function onCreateStageFormSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
+		if (stageImage == "") {
+			confirm("Plese upload the stage image");
+			return;
+		}
 		setLoading(true);
 		const formData = extactFromData(event);
 		console.log(formData);
@@ -147,19 +151,29 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 		const gunCondition = parseInt(formData.gunCondition);
 		const designer = parseInt(formData.designer);
 		const walkthroughTime = parseInt(formData.walkthroughTime);
-		const tagIds = parseInt(formData.tags);
+		
 		let img_id = props.editStage?.imageId ?? "";
 		if (edit_image !== stageImage) {
 			img_id = await uploadImage(stageImage);
 		}
-
-		let link_tag;
-		if (tagIds !== 0)
-			link_tag = {
-				connect: {
-					id: tagIds,
+		
+		let tags = {};
+		if (formData.tags !== "") {
+			const tagIds: number[] = JSON.parse(`[${formData.tags}]`);
+			tags = {
+				tags: {
+					create: tagIds.map(v =>{
+						return {
+							tag: {
+								connect: {
+									id: v,
+								},
+							},
+						};
+					}),
 				},
 			};
+		}
 
 		if (props.editStage) {
 			await updateStage({
@@ -196,7 +210,6 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 						walkthroughTime: {
 							set: walkthroughTime,
 						},
-						tags: link_tag,
 					},
 					where: {
 						id: props.editStage.id,
@@ -224,7 +237,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 							},
 						},
 						walkthroughTime,
-						tags: link_tag,
+						...tags,
 					},
 				},
 			});
@@ -429,22 +442,29 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 								name="tags"
 								label="Tag"
 								value={selectedTag}
+								multiple
 								onChange={onTagsSelectChange}
-								defaultValue={props.editStage?.tagId ?? 0}
+								defaultValue={props.editStage?.tags?.map(v => v.id) as number[] ?? [0]}
 								renderValue={(selected) => (
 									<Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-										{(() => {
-											const data = tags.data?.findManyStageTag[tags.data?.findManyStageTag.findIndex((e) => e.id == selected)];
-											if (!data)
+										{selected.map(v => {
+											const tagData = tags.data?.findManyStageTag.find(e => e.id == v);
+											if (!tagData)
 												return <></>;
-											return <Chip label={data.title} sx={{ backgroundColor: data.color }} />;
-										})()}
+											return <Chip
+												key={v}
+												label={tagData.title}
+												sx={{
+													background: tagData.color,
+												}}
+											/>;
+										})}
 									</Box>
 								)}
 							>
 								{tags.data?.findManyStageTag.map(v =>
 									<MenuItem value={v.id} key={v.id} >
-										<Checkbox checked={selectedTag == v.id} />
+										<Checkbox checked={selectedTag.indexOf(v.id) > -1} />
 										<Chip
 											label={v.title}
 											variant="outlined"

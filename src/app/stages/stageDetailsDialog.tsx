@@ -103,7 +103,7 @@ export default function StageDetialsDialog(props: StageDetialsDialogProps) {
 					papers: stage.data.findUniqueStage.papers,
 					poppers: stage.data.findUniqueStage.poppers,
 					walkthroughTime: stage.data.findUniqueStage.walkthroughTime,
-					tagId: stage.data.findUniqueStage.stageTagId,
+					tags: stage.data.findUniqueStage.tags ? stage.data.findUniqueStage.tags.map(v => v.tag) : [],
 				}}
 			/>
 			<Dialog
