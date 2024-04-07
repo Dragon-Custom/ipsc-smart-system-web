@@ -4,6 +4,7 @@ import { Delete, Edit } from "@mui/icons-material";
 import { Button, Chip, Dialog, DialogContent, DialogTitle, IconButton, ListItemButton, ListItemText, Stack } from "@mui/material";
 import { useConfirm } from "material-ui-confirm";
 import React from "react";
+import StageTagFormDialog, { StageTagFormDialogProps } from "./stageTagFormDialog";
 
 
 const FindManyStageTagsQuery = gql`
@@ -61,8 +62,33 @@ export default function StageTagManageDialog(props: StageTagManageDialogProps) {
 			}).catch();
 	}
 
+	const [tagFormOpen, setTagFormOpen] = React.useState(false);
+	function closeTagForm() {
+		setTagFormOpen(false);
+	}
+	function openTagForm() {
+		setTagFormOpen(true);
+	}
+	const [editTag, setEditTag] = React.useState<StageTagFormDialogProps["editTag"] | undefined>();
+	function onEditButtonClick(tagId: number) {
+		const tagData = tags.data?.findManyStageTag.find(v => tagId == v.id);
+		if (!tagData)
+			return;
+		setEditTag({
+			color: tagData.color,
+			title: tagData.title,
+			id: tagData.id,
+		});
+		openTagForm();
+	}
+
 	return (
 		<>
+			<StageTagFormDialog
+				open={tagFormOpen}
+				onClose={closeTagForm}
+				editTag={editTag}
+			/>
 			<Dialog
 				open={props.open}
 				onClose={props.onClose}
@@ -75,7 +101,7 @@ export default function StageTagManageDialog(props: StageTagManageDialogProps) {
 						<Stack>
 							{tags.data.findManyStageTag.map(v => {
 								return (
-									<ListItemButton key={v.id} onClick={() => onDeleteTagClick(v.id)}>
+									<ListItemButton key={v.id}>
 										<ListItemText>
 											<Chip
 												key={v.id}
@@ -85,16 +111,16 @@ export default function StageTagManageDialog(props: StageTagManageDialogProps) {
 												label={v.title}
 											/>
 										</ListItemText>
-										<IconButton>
-											<Edit/>
+										<IconButton onClick={() => onEditButtonClick(v.id)}>
+											<Edit />
 										</IconButton>
-										<IconButton>
+										<IconButton onClick={() => onDeleteTagClick(v.id)}>
 											<Delete/>
 										</IconButton>
 									</ListItemButton>
 								);
 							})}
-							<Button size={"large"} fullWidth variant="outlined">Add a tag</Button>
+							<Button size={"large"} fullWidth variant="outlined" onClick={() => { setEditTag(undefined); openTagForm();}}>Add a tag</Button>
 						</Stack>
 					</DialogContent>
 					: <>Loading...</>}

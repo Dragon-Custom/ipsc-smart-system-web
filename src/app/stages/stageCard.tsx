@@ -120,6 +120,7 @@ export default function StageCard(props: StageCardProps) {
 										{props.tags ?
 											props.tags.map((v, i) =>{
 												return <Chip
+													variant="outlined"
 													key={i}
 													sx={{
 														backgroundColor: v.color,
