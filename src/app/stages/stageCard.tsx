@@ -1,7 +1,8 @@
 import React from "react";
-import { Box, Card, CardActionArea, CardContent, CardMedia, Stack, Typography, useMediaQuery } from "@mui/material";
+import { Box, Card, CardActionArea, CardContent, CardMedia, Chip, Stack, Typography, useMediaQuery } from "@mui/material";
 import useGraphqlImage from "@/hooks/useGraphqlImage";
 import StageDetialsDialog from "./stageDetailsDialog";
+import { StageTag } from "@/gql/graphql";
 
 
 
@@ -16,6 +17,7 @@ export interface StageCardProps {
 	imageId: string;
 	stageType: string;
 	createAt: string;
+	tags: StageTag;
 }
 
 export default function StageCard(props: StageCardProps) {
@@ -42,7 +44,7 @@ export default function StageCard(props: StageCardProps) {
 					m: 2,
 					height: () => {
 						if (matches)
-							return 150;
+							return 200;
 					},
 				}
 				}>
@@ -58,7 +60,7 @@ export default function StageCard(props: StageCardProps) {
 								},
 								height: () => {
 									if (matches)
-										return 150;
+										return 200;
 									return "100%";
 								},
 							}}
@@ -87,7 +89,7 @@ export default function StageCard(props: StageCardProps) {
 								Designer: {props.designerName}
 								</Typography>
 								<Typography component="div" variant={matches ? "body2" : "caption"}>
-									{matches ? `Condition ${props.gunConditon}`:`Con.${props.gunConditon}`}
+									{matches ? `Condition ${props.gunConditon}` : `Con.${props.gunConditon}`} {props.stageType} stage
 								</Typography>
 								<Typography component="div" variant={matches ? "body2" : "caption"}>
 									{new Date(props.createAt).toLocaleDateString()}
@@ -99,6 +101,15 @@ export default function StageCard(props: StageCardProps) {
 										</Typography>
 
 									</>
+									: <></>}
+								{props.tags ?
+									<Chip
+										key={props.tags.id}
+										sx={{
+											backgroundColor: props.tags.color,
+										}}
+										label={props.tags.title}
+									/>
 									: <></>}
 							</CardContent>
 						</Box>

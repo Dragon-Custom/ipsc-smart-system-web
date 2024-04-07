@@ -25,6 +25,11 @@ const FindManyStageQuery = gql`
 			imageId
 			stageType
 			createAt
+			tags {
+				id
+				color
+				title
+			}
 		}
 	}
 `;
@@ -90,6 +95,7 @@ export default function Stages() {
 									imageId={v.imageId}
 									stageType={v.stageType}
 									createAt={v.createAt}
+									tags={v.tags}
 								/>);
 						})}
 					</Box>

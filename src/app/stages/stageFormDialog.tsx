@@ -3,7 +3,7 @@ import { Mutation, MutationCreateOneStageArgs, MutationUpdateOneStageArgs, Query
 import useGraphqlImage from "@/hooks/useGraphqlImage";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { FileUpload } from "@mui/icons-material";
-import { Backdrop, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, Grid, InputAdornment, InputLabel, MenuItem,   Select, Stack, TextField,  styled } from "@mui/material";
+import { Backdrop, Box, Button, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, Grid, InputAdornment, InputLabel, MenuItem,   Select, SelectChangeEvent, Stack, TextField,  styled } from "@mui/material";
 import React from "react";
 
 
@@ -52,7 +52,15 @@ const UpdateOneStageMutation = gql`
 		}
 	}
 `;
-
+const FindManyStageTagsQuery = gql`
+	query {
+		findManyStageTag {
+			color
+			id
+			title
+		}
+	}
+`;
 
 export interface StageFormData {
 	name: string;
@@ -63,6 +71,7 @@ export interface StageFormData {
 	poppers: string;
 	gunCondition: string;
 	walkthroughTime: string;
+	tags: string;
 }
 
 function extactFromData(event: React.FormEvent<HTMLFormElement>) {
@@ -101,9 +110,11 @@ export interface StageFormDialogProps {
 		poppers: number;
 		gunCondition: number;
 		walkthroughTime: number;
+		tagId?: number;
 	}
 }
 export default function StageFormDialog(props: StageFormDialogProps) {
+	const tags = useQuery<Query>(FindManyStageTagsQuery);
 	const allShooter = useQuery<Query>(FindManyShooterQuery);
 	const [createStage] = useMutation<Mutation["createOneStage"], MutationCreateOneStageArgs>(CreateOneStageMutation);
 	const [updateStage] = useMutation<Mutation["updateOneStage"], MutationUpdateOneStageArgs>(UpdateOneStageMutation);
@@ -114,6 +125,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 	});
 	const [cropperOpen, setCropperOpne] = React.useState(false);
 	const [stageImage, setStageImage] = React.useState("");
+	const [selectedTag, setSelectedTag] = React.useState<number>(0);
 	const [loading, setLoading] = React.useState(false);
 	let edit_image: string;
 	if (props.editStage)
@@ -135,10 +147,19 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 		const gunCondition = parseInt(formData.gunCondition);
 		const designer = parseInt(formData.designer);
 		const walkthroughTime = parseInt(formData.walkthroughTime);
+		const tagIds = parseInt(formData.tags);
 		let img_id = props.editStage?.imageId ?? "";
 		if (edit_image !== stageImage) {
 			img_id = await uploadImage(stageImage);
 		}
+
+		let link_tag;
+		if (tagIds !== 0)
+			link_tag = {
+				connect: {
+					id: tagIds,
+				},
+			};
 
 		if (props.editStage) {
 			await updateStage({
@@ -175,6 +196,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 						walkthroughTime: {
 							set: walkthroughTime,
 						},
+						tags: link_tag,
 					},
 					where: {
 						id: props.editStage.id,
@@ -202,6 +224,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 							},
 						},
 						walkthroughTime,
+						tags: link_tag,
 					},
 				},
 			});
@@ -248,6 +271,9 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 	}
 	function onImageCropperChange(base64url: string) {
 		setStageImage(base64url);
+	}
+	function onTagsSelectChange(event: SelectChangeEvent<typeof selectedTag>) { 
+		setSelectedTag(event.target.value as number[]);
 	}
 
 	return (
@@ -397,6 +423,37 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 							}}
 							defaultValue={props.editStage?.walkthroughTime}
 						/>
+						<FormControl fullWidth>
+							<InputLabel>Tags</InputLabel>
+							<Select
+								name="tags"
+								label="Tag"
+								value={selectedTag}
+								onChange={onTagsSelectChange}
+								defaultValue={props.editStage?.tagId ?? 0}
+								renderValue={(selected) => (
+									<Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+										{(() => {
+											const data = tags.data?.findManyStageTag[tags.data?.findManyStageTag.findIndex((e) => e.id == selected)];
+											if (!data)
+												return <></>;
+											return <Chip label={data.title} sx={{ backgroundColor: data.color }} />;
+										})()}
+									</Box>
+								)}
+							>
+								{tags.data?.findManyStageTag.map(v =>
+									<MenuItem value={v.id} key={v.id} >
+										<Checkbox checked={selectedTag == v.id} />
+										<Chip
+											label={v.title}
+											variant="outlined"
+											sx={{ backgroundColor: v.color}}
+										/>
+									</MenuItem>,
+								)}
+							</Select>
+						</FormControl>
 						<Grid container borderRadius={1}>
 							<StageAttr item borderRadius={"inherit"} xs={12/2} sm={12/3}>Max. score: {stageAttr.maxScore}</StageAttr>
 							<StageAttr item borderRadius={"inherit"} xs={12/2} sm={12/3}>Min. rounds: {stageAttr.minRounds}</StageAttr>
