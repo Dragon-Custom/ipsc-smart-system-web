@@ -1,15 +1,12 @@
 "use client";
-import { Add } from "@mui/icons-material";
+import { Add, Tag } from "@mui/icons-material";
 import { Box, Paper, SpeedDial, SpeedDialAction, SpeedDialIcon, Tab, Tabs, Typography } from "@mui/material";
 import React from "react";
 import StageFormDialog from "./stageFormDialog";
 import { gql, useQuery, useSubscription } from "@apollo/client";
 import { Query } from "@/gql/graphql";
 import StageCard from "./stageCard";
-
-
-
-
+import StageTagManageDialog from "./stageTagManageDialog";
 
 
 const FindManyStageQuery = gql`
@@ -66,6 +63,16 @@ export default function Stages() {
 	const onTabIndexChange = (event: React.SyntheticEvent, newValue: string) => {
 		setTabIndex(newValue);
 	};
+
+	const [tagMgrOpen, setTagMgrOpen] = React.useState(false);
+	function closeTagMgr() {
+		setTagMgrOpen(false);
+	}
+	function openTagMgr() {
+		setTagMgrOpen(true);
+	}
+
+
 	return (
 		<>
 			<Typography variant="h5" p={2}>Stage list: {tabIndex}</Typography>
@@ -116,7 +123,18 @@ export default function Stages() {
 					tooltipOpen
 					onClick={onCreateStageButtonClick}
 				/>
+				<SpeedDialAction
+					icon={<Tag/>}
+					tooltipTitle={"Tag manager"}
+					tooltipOpen
+					onClick={openTagMgr}
+				/>
 			</SpeedDial>
+			<StageTagManageDialog
+				open={tagMgrOpen}
+				onClose={closeTagMgr}
+			>
+			</StageTagManageDialog>
 			<StageFormDialog
 				open={createStageFormOpen}
 				onClose={closeCreateStageForm}

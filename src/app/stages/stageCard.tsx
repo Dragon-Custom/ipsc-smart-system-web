@@ -118,15 +118,15 @@ export default function StageCard(props: StageCardProps) {
 										Tags:
 										<Divider sx={{m: 1}} />
 										{props.tags ?
-											props.tags.map((v, i) =>
-												<Chip
+											props.tags.map((v, i) =>{
+												return <Chip
 													key={i}
 													sx={{
 														backgroundColor: v.color,
 													}}
 													label={v.title}
-												/>,
-											)
+												/>;
+											})
 											: <></>}
 									</Grid>
 								</Stack>
