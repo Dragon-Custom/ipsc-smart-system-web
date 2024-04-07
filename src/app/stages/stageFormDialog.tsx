@@ -1,5 +1,5 @@
 import ImageCropper from "@/components/ImageCropper";
-import { Mutation, MutationCreateOneStageArgs, MutationUpdateOneStageArgs, Query, StageTag, TagOnStageCreateNestedManyWithoutStageInput, TagOnStageWhereUniqueInput } from "@/gql/graphql";
+import { Mutation, MutationCreateOneStageArgs, MutationDeleteManyTagOnStageArgs, MutationUpdateOneStageArgs, Query } from "@/gql/graphql";
 import useGraphqlImage from "@/hooks/useGraphqlImage";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { FileUpload } from "@mui/icons-material";
@@ -61,6 +61,14 @@ const FindManyStageTagsQuery = gql`
 		}
 	}
 `;
+const DeleteManyTagOnStageMutation = gql`
+	mutation($where: TagOnStageWhereInput!) {
+		deleteManyTagOnStage(where: $where) {
+			count
+		}
+	}
+
+`;
 
 export interface StageFormData {
 	name: string;
@@ -110,7 +118,7 @@ export interface StageFormDialogProps {
 		poppers: number;
 		gunCondition: number;
 		walkthroughTime: number;
-		tags?: StageTag[];
+		tags?: number[];
 	}
 }
 export default function StageFormDialog(props: StageFormDialogProps) {
@@ -118,6 +126,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 	const allShooter = useQuery<Query>(FindManyShooterQuery);
 	const [createStage] = useMutation<Mutation["createOneStage"], MutationCreateOneStageArgs>(CreateOneStageMutation);
 	const [updateStage] = useMutation<Mutation["updateOneStage"], MutationUpdateOneStageArgs>(UpdateOneStageMutation);
+	const [deleteTagOnStage] = useMutation<Mutation["deleteManyTagOnStage"], MutationDeleteManyTagOnStageArgs>(DeleteManyTagOnStageMutation);
 	const [stageAttr, setStageAttr] = React.useState({
 		minRounds: 0,
 		maxScore: 0,
@@ -125,7 +134,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 	});
 	const [cropperOpen, setCropperOpne] = React.useState(false);
 	const [stageImage, setStageImage] = React.useState("");
-	const [selectedTag, setSelectedTag] = React.useState<number[]>([]);
+	const [selectedTag, setSelectedTag] = React.useState<number[]>(props.editStage?.tags ?? []);
 	const [loading, setLoading] = React.useState(false);
 	let edit_image: string;
 	if (props.editStage)
@@ -176,6 +185,15 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 		}
 
 		if (props.editStage) {
+			await deleteTagOnStage({
+				variables: {
+					where: {
+						stageId: {
+							equals: props.editStage.id,
+						},
+					},
+				},
+			});
 			await updateStage({
 				variables: {
 					data: {
@@ -210,6 +228,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 						walkthroughTime: {
 							set: walkthroughTime,
 						},
+						...tags,
 					},
 					where: {
 						id: props.editStage.id,
@@ -444,7 +463,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 								value={selectedTag}
 								multiple
 								onChange={onTagsSelectChange}
-								defaultValue={props.editStage?.tags?.map(v => v.id) as number[] ?? [0]}
+								defaultValue={props.editStage?.tags as number[]}
 								renderValue={(selected) => (
 									<Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
 										{selected.map(v => {
