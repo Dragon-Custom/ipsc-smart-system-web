@@ -1,7 +1,7 @@
 "use client";
-import { BLEStopplateService } from "@/ble_stopplate_service";
-import { BUZZER_WAVEFORM_OBJECT } from "@/buzzer";
-import { delay } from "@/utils";
+import { BLEStopplateService } from "@/lib/ble_stopplate_service";
+import { BUZZER_WAVEFORM_OBJECT } from "@/lib/buzzer";
+import { delay } from "@/lib/utils";
 import {
 	Backdrop,
 	Button,

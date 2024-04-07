@@ -1,10 +1,10 @@
 "use client";
-import { BLEStopplateService } from "@/ble_stopplate_service";
+import { BLEStopplateService } from "@/lib/ble_stopplate_service";
 import { Timer as TimerIcon } from "@mui/icons-material";
 import { Button, ButtonProps, Container, Divider, Grid, List, ListItemButton, ListItemButtonProps, ListItemIcon, ListItemText, Stack, Typography } from "@mui/material";
 import React from "react";
 import StopplateSettngDialog from "./stooplateSettingDialog";
-import { BUZZER_WAVEFORM_OBJECT, beep } from "@/buzzer";
+import { BUZZER_WAVEFORM_OBJECT, beep } from "@/lib/buzzer";
 import { confirm } from "material-ui-confirm";
 
 function getRandomArbitrary(min: number, max: number) {

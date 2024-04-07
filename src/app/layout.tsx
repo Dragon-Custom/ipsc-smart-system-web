@@ -13,7 +13,7 @@ import { Paper, Stack, ThemeProvider, Toolbar, createTheme } from "@mui/material
 import { ConfirmProvider } from "material-ui-confirm";
 import GlobalLayoutSideBar from "@/components/GlobalLayout/GlobalLayoutSideBar";
 import { ApolloProvider } from "@apollo/client";
-import { client } from "./apolloClient";
+import { client } from "../lib/clientApollo";
 
 
 const INTER = inter({ subsets: ["latin"] });
@@ -60,9 +60,9 @@ export default function RootLayout({
 							<GlobalLayoutAppBar
 								onMenuClick={() => dispatch("open")}
 							/>
-							<Stack sx={{width:"100%", top:0}}>
+							<Stack sx={{width:"100%", top:0, height: "100vh"}}>
 								<Toolbar />
-								<Paper elevation={1} sx={{height:"100%", p:2}}>{children}</Paper>
+								<Paper elevation={1} sx={{height:"100%", p:2, top:0, bottom:0, overflow:"auto"}}>{children}</Paper>
 							</Stack>
 							<Paper
 								elevation={1}
@@ -71,7 +71,7 @@ export default function RootLayout({
 									right: 0,
 									left: 0,
 									bottom: 0,
-									position: "absolute",
+									position: "fixed",
 									zIndex: -1000,
 								}}/>
 						</ConfirmProvider>
