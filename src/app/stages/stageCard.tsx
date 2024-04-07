@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Card, CardActionArea, CardContent, CardMedia, Chip, Stack, Theme, Typography, useMediaQuery } from "@mui/material";
+import { Box, Card, CardActionArea, CardContent, CardMedia, Chip, Divider, Grid, Stack, Theme, Typography, useMediaQuery } from "@mui/material";
 import useGraphqlImage from "@/hooks/useGraphqlImage";
 import StageDetialsDialog from "./stageDetailsDialog";
 import { StageTag } from "@/gql/graphql";
@@ -80,39 +80,56 @@ export default function StageCard(props: StageCardProps) {
 										return 1;
 									},
 									paddingBottom: "0 !important",
+									height: "100%",
 								}}
 							>
-								<Typography component="div" variant={matches ? "h4" : "h6"}>
-									{props.name}
-								</Typography>
-								<Typography component="div" variant={matches ? "h6" : "caption"}>
-								Designer: {props.designerName}
-								</Typography>
-								<Typography component="div" variant={matches ? "body2" : "caption"}>
-									{matches ? `Condition ${props.gunConditon}` : `Con.${props.gunConditon}`} {props.stageType} stage
-								</Typography>
-								<Typography component="div" variant={matches ? "body2" : "caption"}>
-									{new Date(props.createAt).toLocaleDateString()}
-								</Typography>
-								{matches ?
-									<>
-										<Typography component="div" variant="caption">
-											Description: {props.description}
+								<Stack 
+									direction={"row"} 
+									gap={2} 
+									divider={<Divider orientation="vertical" flexItem />}
+									sx={{
+										height: "100%",
+									}}
+									alignItems={"center"}
+								>
+									<Grid item xs={6}>
+										<Typography component="div" variant={matches ? "h4" : "h6"}>
+											{props.name}
 										</Typography>
+										<Typography component="div" variant={matches ? "h6" : "caption"}>
+											Designer: {props.designerName}
+										</Typography>
+										<Typography component="div" variant={matches ? "body2" : "caption"}>
+											{matches ? `Condition ${props.gunConditon}` : `Con.${props.gunConditon}`} {props.stageType} stage
+										</Typography>
+										<Typography component="div" variant={matches ? "body2" : "caption"}>
+											{new Date(props.createAt).toLocaleDateString()}
+										</Typography>
+										{matches ?
+											<>
+												<Typography component="div" variant="caption">
+											Description: {props.description}
+												</Typography>
 
-									</>
-									: <></>}
-								{props.tags ?
-									props.tags.map((v) =>
-										<Chip
-											key={v.id}
-											sx={{
-												backgroundColor: v.color,
-											}}
-											label={v.title}
-										/>,
-									)
-									: <></>}
+											</>
+											: <></>}
+									</Grid>
+									<Grid item xs={6}>
+										Tags:
+										<Divider sx={{m: 1}} />
+										{props.tags ?
+											props.tags.map((v) =>
+												<Chip
+													key={v.id}
+													sx={{
+														backgroundColor: v.color,
+													}}
+													label={v.title}
+												/>,
+											)
+											: <></>}
+									</Grid>
+								</Stack>
 							</CardContent>
 						</Box>
 					</Stack>
