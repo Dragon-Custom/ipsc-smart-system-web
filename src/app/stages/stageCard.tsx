@@ -18,6 +18,7 @@ export interface StageCardProps {
 	stageType: string;
 	createAt: string;
 	tags: StageTag[];
+	disableOnClick?: boolean;
 }
 
 export default function StageCard(props: StageCardProps) {
@@ -34,11 +35,13 @@ export default function StageCard(props: StageCardProps) {
 
 	return (
 		<>
-			<StageDetialsDialog
-				open={detailsOpen}
-				onClose={onDetailsClose}
-				stageId={props.id}
-			/>
+			{props.disableOnClick ? <></> :
+				<StageDetialsDialog
+					open={detailsOpen}
+					onClose={onDetailsClose}
+					stageId={props.id}
+				/>
+			}
 			<Card
 				sx={{
 					m: 2,

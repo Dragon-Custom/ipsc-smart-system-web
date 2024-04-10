@@ -2,9 +2,11 @@
 import { Mutation, MutationCreateOneScoreboardArgs, MutationDeleteOneScoreboardArgs, MutationUpdateOneScoreboardArgs, Query } from "@/gql/graphql";
 import { gql, useMutation, useQuery, useSubscription } from "@apollo/client";
 import { Add, Delete, Edit } from "@mui/icons-material";
-import { IconButton, Paper, SpeedDial, SpeedDialAction, SpeedDialIcon, Stack, Tab, Tabs, Typography } from "@mui/material";
+import { Grid, IconButton, Paper, SpeedDial, SpeedDialAction, SpeedDialIcon, Stack, Tab, Tabs, Typography } from "@mui/material";
 import { useConfirm } from "material-ui-confirm";
 import React from "react";
+import CreateScorelistDialog from "./createScorelistDialog";
+import ScorelistCard from "./scorelistCard";
 
 
 
@@ -16,9 +18,11 @@ const FetchDataQuery = gql`
 			name
 			createAt
 			scorelists {
+				id
 				createAt
 				stage {
 					name
+					imageId
 				}
 				_count {
                 	scores
@@ -121,11 +125,19 @@ export default function Scoring() {
 			},
 		});
 	}
+	const [createScorelistDialogOpen, setCreateScorelistDialogOpen] = React.useState(false);
+
+	function closeCreateScorelistDialog() {
+		setCreateScorelistDialogOpen(false);
+	}
+	function openCreateScorelistDialog() {
+		setCreateScorelistDialogOpen(true);
+	}
 
 	return (
 		<>
 			<Paper elevation={5} >
-				<Paper elevation={1}>
+				<Paper elevation={2}>
 					<Stack direction={"row"} justifyContent={"space-between"}>
 						<Typography variant="h5" p={2}>Scoreboard: {scoreboard.data?.findManyScoreboard.find(v=>v.id==selectedScoreBoard)?.name ?? "All"}</Typography>
 						{selectedScoreBoard == 0 ? <></> :
@@ -140,29 +152,51 @@ export default function Scoring() {
 						}
 					</Stack>
 				</Paper>
-				<Stack direction={"row"} sx={{ flexGrow: 1, display: "flex", height: "100%"}}>
-					<Tabs
-						value={selectedScoreBoard}
-						orientation="vertical"
-						sx={{borderRight: 1, borderColor: "divider",  width:"max(20vw, 130px)"}}
-						onChange={onScoreboardTabChange}
-					>
-						<Tab label="Scoreboard list" disabled value={-1} sx={{backgroundColor: (theme) => theme.palette.background.paper}} />
-						<Tab label="All" value={0} />
-						{scoreboard.data ? 
-							scoreboard.data.findManyScoreboard.map(v => {
-								return <Tab
-									key={v.id}
-									value={v.id}
-									label={v.name}
-								/>;
-							})
-							:<Tab label="Loading..." />}
-					</Tabs>
-					<Paper elevation={5} sx={{ p: 2, width: "100%" }}>
-						dqw
-					</Paper>
-				</Stack>
+				<Grid container>
+					<Grid item xs={4} md={2}>
+						<Tabs
+							value={selectedScoreBoard}
+							orientation="vertical"
+							sx={{borderRight: 1, borderColor: "divider",  width:"100%"}}
+							onChange={onScoreboardTabChange}
+						>
+							<Tab label="Scoreboard list" disabled value={-1} sx={{backgroundColor: (theme) => theme.palette.background.paper}} />
+							<Tab label="All" value={0} />
+							{scoreboard.data ? 
+								scoreboard.data.findManyScoreboard.map(v => {
+									return <Tab
+										key={v.id}
+										value={v.id}
+										label={v.name}
+									/>;
+								})
+								:<Tab label="Loading..." />}
+						</Tabs>
+					</Grid>
+					<Grid item xs={8} md={10}>
+						<Paper elevation={5} sx={{ p: 2 }}>
+							{scoreboard.data ? 
+								scoreboard.data.findManyScoreboard.map(scoreboard => {
+									return scoreboard.scorelists.map(scorelist => {
+										if (scoreboard.id !== selectedScoreBoard && selectedScoreBoard !== 0) 
+											return;
+										return (
+											<>
+												<ScorelistCard
+													key={scorelist.id}
+													imageId={scorelist.stage?.imageId ?? ""}
+													scorelistName={`${new Date(scorelist.createAt).toLocaleDateString()} ${scorelist.stage?.name}`}
+													scoreCount={scorelist._count.scores}
+													scorelistId={scorelist.id}
+												/>
+											</>
+										);
+									});
+								})
+								:<Typography>Loading...</Typography>}
+						</Paper>	
+					</Grid>
+				</Grid>
 			</Paper>
 			<SpeedDial
 				ariaLabel="Scoreboard operation"
@@ -175,7 +209,17 @@ export default function Scoring() {
 					tooltipOpen
 					onClick={onCreateScoreboardButtonClick}
 				/>
+				<SpeedDialAction
+					icon={<Add/>}
+					tooltipTitle={"Create scorelist"}
+					tooltipOpen
+					onClick={openCreateScorelistDialog}
+				/>
 			</SpeedDial>
+			<CreateScorelistDialog
+				open={createScorelistDialogOpen}
+				onClose={closeCreateScorelistDialog}
+			/>
 		</>
 	);
 }
