@@ -62,7 +62,7 @@ export default function CreateScorelistDialog(props: CreateScorelistDialogProps)
 		event.preventDefault();
 		const formData = new FormData(event.currentTarget);
 		const formJson = Object.fromEntries((formData).entries()) as unknown as { stageId: string, scoreboardId: string };
-		createScorelist({
+		await createScorelist({
 			variables: {
 				data: {
 					stage: {
@@ -78,6 +78,7 @@ export default function CreateScorelistDialog(props: CreateScorelistDialogProps)
 				},
 			},
 		});
+		props.onClose();
 	}
 	
 	return (

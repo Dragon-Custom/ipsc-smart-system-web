@@ -57,6 +57,11 @@ const SubscriptScoreboardsChangeSubscription= gql`
 		subscriptScoreboardsChange
 	}
 `;
+const SubscriptScorelistChangeSubscription= gql`
+	subscription {
+		subscriptScorelistChange
+	}
+`;
 
 export default function Scoring() {
 	const scoreboard = useQuery<Query>(FetchDataQuery);
@@ -64,6 +69,11 @@ export default function Scoring() {
 	const [ updateScoreboard ] = useMutation<Mutation["updateOneScoreboard"], MutationUpdateOneScoreboardArgs>(UpdateOneScoreboardMutation);
 	const [ deleteScoreboard ] = useMutation<Mutation["deleteOneScoreboard"], MutationDeleteOneScoreboardArgs>(DeleteOneScoreboardMutation);
 	useSubscription(SubscriptScoreboardsChangeSubscription, {
+		onData() {
+			scoreboard.refetch();
+		},
+	});
+	useSubscription(SubscriptScorelistChangeSubscription, {
 		onData() {
 			scoreboard.refetch();
 		},

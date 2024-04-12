@@ -83,6 +83,7 @@ export default function Stages() {
 						onChange={onTabIndexChange}
 						variant="scrollable"
 						orientation="vertical"
+						sx={{borderRight: 1, borderColor: "divider"}}
 					>
 						<Tab label="All" value={"All"}/>
 						<Tab label="Short" value={"Short"}/>
