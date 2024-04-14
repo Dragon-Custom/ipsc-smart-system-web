@@ -4,6 +4,7 @@ import { gql, useMutation } from "@apollo/client";
 import { Delete } from "@mui/icons-material";
 import { Card, CardActionArea, CardActions, CardContent, CardMedia, Grid, IconButton, Typography } from "@mui/material";
 import { useConfirm } from "material-ui-confirm";
+import { useRouter } from "next/navigation";
 import React from "react";
 
 
@@ -26,6 +27,7 @@ export default function ScorelistCard(props: ScorelistCardProps) {
 	const stageImage = useGraphqlImage(props.imageId);
 	const [deleteScorelist] = useMutation<Mutation["deleteOneScorelist"], MutationDeleteOneScorelistArgs>(DeleteScorelistMutation);
 	const confirm = useConfirm();
+	const router = useRouter();
 
 	function onDeleteScorelistButtonClick() {
 		confirm({
@@ -48,10 +50,14 @@ export default function ScorelistCard(props: ScorelistCardProps) {
 			.catch();
 	}
 
+	function onCardClick() {
+		router.push(`scoring/${props.scorelistId.toString()}`);
+	}
+
 	return (
 		<>
 			<Card>
-				<CardActionArea>
+				<CardActionArea onClick={onCardClick}>
 					<Grid container height={"100%"}>
 						<Grid item xs={12} sm={6} md={3}>
 							<CardMedia
