@@ -1,8 +1,9 @@
 "use client";
+import Timer from "@/app/timer/timer";
 import { Query, QueryFindUniqueScoreArgs } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { Add, Remove } from "@mui/icons-material";
-import { Button, ButtonGroup, Chip, Container, Divider, Grid, IconButton, Paper, Stack, TextField, TextFieldProps, Typography } from "@mui/material";
+import { Button, ButtonGroup, Container, Dialog, Divider, Grid, IconButton, Paper, Stack, TextField, TextFieldProps, Typography } from "@mui/material";
 import { useLongPress } from "@uidotdev/usehooks";
 import { useParams } from "next/navigation";
 import React from "react";
@@ -235,6 +236,15 @@ export default function ScorePage() {
 	function onTimeChange(v: number) {
 		setTime(v);
 	}
+	const displayTime = React.useMemo(() => time.toFixed(2), [time]);
+
+	const [timerDialogOpen, setTimerDialogOpen] = React.useState(false);
+	function openTimerDialog() {
+		setTimerDialogOpen(true);
+	}
+	function closeTimerDialog() {
+		setTimerDialogOpen(false);
+	}
 
 	if (!query.data?.findUniqueScore)
 		return <>Loading...</>;
@@ -242,6 +252,13 @@ export default function ScorePage() {
 	const data = query.data.findUniqueScore;
 	return (
 		<>
+			<Dialog
+				open={timerDialogOpen}
+				onClose={closeTimerDialog}
+				keepMounted
+			>
+				<Timer onAssign={(v) => { closeTimerDialog(); onTimeChange(v); }}/>
+			</Dialog>
 			<Container maxWidth="sm" sx={{height:"100%"}}>
 				<Paper
 					elevation={2}
@@ -260,11 +277,11 @@ export default function ScorePage() {
 								hideDecreamentButton
 								hideIncreamentButton
 								name="time"
-								value={time}
+								value={displayTime}
 								onChange={(a, v) => onTimeChange(v)}
 							/>
 							<Grid item xs={12} sm={6}>
-								<Button fullWidth sx={{height:"100%"}}>Open Timer</Button>
+								<Button fullWidth sx={{height:"100%"}} onClick={openTimerDialog}>Open Timer</Button>
 							</Grid>
 							<ScoreInputControll
 								label="Poppers"
