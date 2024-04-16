@@ -4,11 +4,13 @@ import { gql, useMutation, useQuery, useSubscription } from "@apollo/client";
 import { Add, PersonAdd } from "@mui/icons-material";
 import { Box, Button, Paper, SpeedDial, SpeedDialAction, SpeedDialIcon, Tab, Tabs, Typography } from "@mui/material";
 import { AgGridReact } from "ag-grid-react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React from "react";
 import {
 	ColDef,
+	RowClickedEvent,
 } from "@ag-grid-community/core";
+import JoinShooterDialog from "./joinShooterDialog";
 
 const FetchQuery = gql`
 	query($where: ScorelistWhereUniqueInput!) {
@@ -77,24 +79,25 @@ interface ScoreItem {
 	Time: number;
 	HitFactor: string;
 	Precentage: string;
+	Id: number;
 }
 
 export default function ScorelistPage() {
-	const router = useParams();
-	const id = parseInt(router.id as string);
+	const params = useParams();
+	const id = parseInt(params.scorelistId as string);
 	if (isNaN(id))
 		return <>
 			Error: youve pass a invaild scorelist id
 		</>;
-	
+	const router = useRouter();
 	useSubscription(SubscriptScorelistChange, {
-		onData() {
-			query.refetch();
+		async onData() {
+			await query.refetch();
 		},
 	});
 	useSubscription(SubscriptScoreChange, {
-		onData() {
-			query.refetch();
+		async onData() {
+			await query.refetch();
 		},
 	});
 	const [updateScorelist] = useMutation<Mutation["updateOneScorelist"], MutationUpdateOneScorelistArgs>(UpdateOneScorelist);
@@ -104,9 +107,10 @@ export default function ScorelistPage() {
 				id,
 			},
 		},
-		onCompleted(data) {
+		onCompleted() {
 			refreshGrid();
 		},
+		fetchPolicy: "no-cache",
 	});
 
 	function addRround() {
@@ -132,6 +136,7 @@ export default function ScorelistPage() {
 			if (v.round !== selectedRound && selectedRound !== 0)
 				return;
 			Rows.push({
+				Id: v.id,
 				A: v.alphas,
 				C: v.charlies,
 				D: v.deltas,
@@ -145,13 +150,18 @@ export default function ScorelistPage() {
 				Precentage: `${v.roundPrecentage.toFixed(1)}%`,
 			});
 		});
-		setRowData(Rows);
+		setRowData([...Rows]);
 	}
 	const [selectedRound, setSelectedRound] = React.useState(0);
 
-	React.useEffect(() => {
-		refreshGrid();
-	}, [selectedRound]);
+	const [joinShooterDialogOpem, setJoinShooterDialogOpem] = React.useState(false);
+	function openJoinShooterDialog() {
+		setJoinShooterDialogOpem(true);
+	}
+	function closeJoinShooterDialog() {
+		setJoinShooterDialogOpem(false);
+	}
+	
 	// #region grid
 
 	function onSelectedRoundChange(newRound: number) {
@@ -161,17 +171,18 @@ export default function ScorelistPage() {
  
 	// Column Definitions: Defines the columns to be displayed.
 	const [colDefs] = React.useState<ColDef<ScoreItem>[]>([
-		{ field: "Name", flex: 500, pinned: true},
-		{ field: "A",  minWidth: 5},
-		{ field: "C",  minWidth: 5},
-		{ field: "D",  minWidth: 5},
+		{ field: "Id", hide: true },
+		{ field: "Name", flex: 500, pinned: true },
+		{ field: "A", minWidth: 5 },
+		{ field: "C", minWidth: 5 },
+		{ field: "D", minWidth: 5 },
 		{ field: "Miss" },
-		{ field: "NoShoots", minWidth: 100},
-		{ field: "Popper", minWidth: 80},
-		{ field: "ProErrors", minWidth: 100},
+		{ field: "NoShoots", minWidth: 100 },
+		{ field: "Popper", minWidth: 80 },
+		{ field: "ProErrors", minWidth: 100 },
 		{ field: "Time" },
-		{ field: "HitFactor", flex: 2},
-		{ field: "Precentage", flex: 2},
+		{ field: "HitFactor", flex: 2 },
+		{ field: "Precentage", flex: 2 },
 	]);
 
 	const autoSizeStrategy = {
@@ -183,9 +194,20 @@ export default function ScorelistPage() {
 			gridRef.current!.api.getColumns()!.forEach((column) => {
 				allColumnIds.push(column.getId());
 			});
-    gridRef.current!.api.autoSizeColumns(allColumnIds, skipHeader);
+		gridRef.current!.api.autoSizeColumns(allColumnIds, skipHeader);
 	}, []);
+
+	function onRowClicked(event: RowClickedEvent<ScoreItem>) {
+		router.push(`${id}/${event.data?.Id}`);
+	}
+
 	// #endregion
+	React.useEffect(() => {
+		refreshGrid();
+	}, [selectedRound, query]);
+	React.useEffect(() => {
+		gridRef.current?.api.autoSizeAllColumns();
+	}, [gridRef]);
 
 	// #region error handling
 	if (query.error)
@@ -205,7 +227,7 @@ export default function ScorelistPage() {
 				<Typography variant="h4">{`${new Date(data.stage?.createAt).toLocaleDateString()} ${data.stage?.name}`}</Typography>
 			</Box>
 			<Paper elevation={10} sx={{mt: 2}}>
-				<Tabs value={selectedRound} onChange={(e, v) => onSelectedRoundChange(v)}>
+				<Tabs variant="scrollable" value={selectedRound} onChange={(e, v) => onSelectedRoundChange(v)}>
 					<Tab label="Overall" value={0} />
 					{(() => {
 						const tabList = [];
@@ -215,19 +237,22 @@ export default function ScorelistPage() {
 						return tabList;
 					})()}
 				</Tabs>
+				<div
+					className="ag-theme-alpine-dark" // applying the grid theme
+					style={{ height: 500 }} // the grid will fill the size of the parent container
+				>
+					<Button onClick={() => autoSizeAll(false)}>Resize the grid</Button>
+					{/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+					{/* @ts-ignore */}
+					<AgGridReact
+						ref={gridRef}
+						rowData={rowData}
+						onRowClicked={onRowClicked}
+						columnDefs={colDefs}
+						autoSizeStrategy={autoSizeStrategy}
+					/>
+				</div>
 			</Paper>
-			<div
-				className="ag-theme-alpine-dark" // applying the grid theme
-				style={{ height: 500 }} // the grid will fill the size of the parent container
-			>
-				<Button onClick={() => autoSizeAll(false)}>Resize the grid</Button>
-				<AgGridReact
-					ref={gridRef}
-					rowData={rowData}
-					columnDefs={colDefs}
-					autoSizeStrategy={autoSizeStrategy}
-				/>
-			</div>
 
 			<SpeedDial
 				ariaLabel="Scorelist operation"
@@ -244,9 +269,16 @@ export default function ScorelistPage() {
 					icon={<PersonAdd/>}
 					tooltipTitle={"Join shooters"}
 					tooltipOpen
-					// onClick={openCreateScorelistDialog}
+					onClick={openJoinShooterDialog}
 				/>
 			</SpeedDial>
+			
+			<JoinShooterDialog
+				open={joinShooterDialogOpem}
+				onClose={closeJoinShooterDialog}
+				scorelistId={id}
+				round={selectedRound}
+			/>
 		</>
 	);
 }
