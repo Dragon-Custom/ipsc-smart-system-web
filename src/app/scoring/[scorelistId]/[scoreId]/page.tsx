@@ -1,10 +1,11 @@
 "use client";
 import Timer from "@/app/timer/timer";
-import { Query, QueryFindUniqueScoreArgs } from "@/gql/graphql";
-import { gql, useQuery } from "@apollo/client";
+import { Mutation, MutationUpdateOneScoreArgs, Query, QueryFindUniqueScoreArgs, ScoreState } from "@/gql/graphql";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import { Add, Remove } from "@mui/icons-material";
 import { Button, ButtonGroup, Container, Dialog, Divider, Grid, IconButton, Paper, Stack, TextField, TextFieldProps, Typography } from "@mui/material";
 import { useLongPress } from "@uidotdev/usehooks";
+import { useConfirm } from "material-ui-confirm";
 import { useParams } from "next/navigation";
 import React from "react";
 
@@ -41,6 +42,14 @@ const FetchQuery = gql`
 				}
 			}
 			time
+		}
+	}
+`;
+
+const UpdateOneScoreMutation = gql`
+	mutation($data: ScoreUpdateInput!, $where: ScoreWhereUniqueInput!) {
+		updateOneScore(data: $data, where: $where) {
+			id
 		}
 	}
 `;
@@ -166,6 +175,8 @@ function PaperAssignItem(props: PaperAssignItemProps) {
 export default function ScorePage() {
 	const router = useParams();
 	const id = parseInt(router.scoreId as string);
+	const [updateScore] = useMutation<Mutation["updateOneScore"], MutationUpdateOneScoreArgs>(UpdateOneScoreMutation);
+	const confirm = useConfirm();
 	if (isNaN(id))
 		return <>
 			Error: youve pass a invaild score id
@@ -244,6 +255,31 @@ export default function ScorePage() {
 	}
 	function closeTimerDialog() {
 		setTimerDialogOpen(false);
+	}
+
+	function dq() {
+
+	}
+	function dnf() {
+		confirm({
+			title: "Are you sure you want to set the score to DNF?",
+			confirmationButtonProps: {
+				color: "error",
+			},
+		}).then(() => {
+			updateScore({
+				variables: {
+					data: {
+						state: {
+							set: ScoreState.DidNotFinish,
+						},
+					},
+					where: {
+						id,
+					},
+				},
+			});
+		}).catch();
 	}
 
 	if (!query.data?.findUniqueScore)
@@ -326,8 +362,8 @@ export default function ScorePage() {
 						</Stack>
 						<Button fullWidth variant="outlined" color="secondary">Pro errors</Button>
 						<ButtonGroup fullWidth variant="text">
-							<Button variant="contained" color="error">DQ</Button>
-							<Button variant="contained" color="warning">DNF</Button>
+							<Button variant="contained" color="error" onClick={dq}>DQ</Button>
+							<Button variant="contained" color="warning" onClick={dnf}>DNF</Button>
 							<Button variant="contained" color="success">Review</Button>
 						</ButtonGroup>
 					</Stack>

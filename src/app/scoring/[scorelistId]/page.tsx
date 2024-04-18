@@ -1,8 +1,9 @@
 "use client";
-import { Mutation, MutationUpdateOneScorelistArgs, Query, QueryFindUniqueScorelistArgs } from "@/gql/graphql";
+import { Mutation, MutationUpdateOneScorelistArgs, Query, QueryFindUniqueScorelistArgs, ScoreState } from "@/gql/graphql";
 import { gql, useMutation, useQuery, useSubscription } from "@apollo/client";
 import { Add, PersonAdd } from "@mui/icons-material";
-import { Box, Button, Paper, SpeedDial, SpeedDialAction, SpeedDialIcon, Tab, Tabs, Typography } from "@mui/material";
+import { RowClassParams } from "ag-grid-community";
+import { Box, Button, Paper, SpeedDial, SpeedDialAction, SpeedDialIcon, Tab, Tabs, Typography, useTheme } from "@mui/material";
 import { AgGridReact } from "ag-grid-react";
 import { useParams, useRouter } from "next/navigation";
 import React from "react";
@@ -40,6 +41,7 @@ const FetchQuery = gql`
 				hitFactor
 				proErrorCount
 				roundPrecentage
+				state
 			}
 			rounds
 		}
@@ -90,6 +92,7 @@ export default function ScorelistPage() {
 			Error: youve pass a invaild scorelist id
 		</>;
 	const router = useRouter();
+	const theme = useTheme();
 	useSubscription(SubscriptScorelistChange, {
 		async onData() {
 			await query.refetch();
@@ -133,6 +136,16 @@ export default function ScorelistPage() {
 		if (!query.data?.findUniqueScorelist)
 			return;
 		query.data.findUniqueScorelist.scores.map((v) => {
+			let name_surfix = "";
+			switch (v.state) {
+			case ScoreState.Dq:
+				name_surfix = "(DQ)";
+				break;
+			case ScoreState.DidNotFinish:
+				name_surfix = "(DNF)";
+				break;
+			}
+
 			if (v.round !== selectedRound && selectedRound !== 0)
 				return;
 			Rows.push({
@@ -141,7 +154,7 @@ export default function ScorelistPage() {
 				C: v.charlies,
 				D: v.deltas,
 				Miss: v.misses,
-				Name: v.shooter.name,
+				Name: `${v.shooter.name} ${name_surfix}`,
 				NoShoots: v.noshoots,
 				Popper: v.poppers ?? 0,
 				ProErrors: v.proErrorCount,
@@ -209,6 +222,20 @@ export default function ScorelistPage() {
 		gridRef.current?.api.autoSizeAllColumns();
 	}, [gridRef]);
 
+	const getRowStyle = (params: RowClassParams<ScoreItem>) => {
+		const State: ScoreState = query.data?.findUniqueScorelist?.scores[parseInt(params.node.id ?? "")].state;
+		switch (State) {
+		case "DQ":
+			return { background: `${theme.palette.error[theme.palette.mode]}3f` };
+		case "DidNotFinish":
+			return { background: `${theme.palette.warning[theme.palette.mode]}3f` };
+		case "DidNotScore":
+			return;
+		case "Scored":
+			return { background: `${theme.palette.success[theme.palette.mode]}3f` };
+		}
+	};
+	
 	// #region error handling
 	if (query.error)
 		return <>
@@ -250,6 +277,7 @@ export default function ScorelistPage() {
 						onRowClicked={onRowClicked}
 						columnDefs={colDefs}
 						autoSizeStrategy={autoSizeStrategy}
+						getRowStyle={getRowStyle}
 					/>
 				</div>
 			</Paper>
