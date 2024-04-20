@@ -6,7 +6,7 @@ import { Add, Remove } from "@mui/icons-material";
 import { Button, ButtonGroup, Container, Dialog, Divider, Grid, IconButton, Paper, Stack, TextField, TextFieldProps, Typography } from "@mui/material";
 import { useLongPress } from "@uidotdev/usehooks";
 import { useConfirm } from "material-ui-confirm";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React from "react";
 
 
@@ -73,7 +73,7 @@ const ScoreInputControll = React.forwardRef(function ScoreInputControll(props: S
 						min: 0,
 					}}
 					{...props}
-					onChange={(e) => props.onChange ? props.onChange("set", parseInt(e.target.value)) : {}}
+					onChange={(e) => props.onChange ? props.onChange("set", parseFloat(e.target.value)) : {}}
 					fullWidth
 					type="number"
 				/>
@@ -173,8 +173,9 @@ function PaperAssignItem(props: PaperAssignItemProps) {
 }
 
 export default function ScorePage() {
-	const router = useParams();
-	const id = parseInt(router.scoreId as string);
+	const params = useParams();
+	const router = useRouter();
+	const id = parseInt(params.scoreId as string);
 	const [updateScore] = useMutation<Mutation["updateOneScore"], MutationUpdateOneScoreArgs>(UpdateOneScoreMutation);
 	const confirm = useConfirm();
 	if (isNaN(id))
@@ -256,6 +257,27 @@ export default function ScorePage() {
 	function closeTimerDialog() {
 		setTimerDialogOpen(false);
 	}
+	
+	const totalScore = React.useMemo(() => {
+		const count: PaperData = {
+			a: 0,
+			c: 0,
+			d: 0,
+			m: 0,
+			ns: 0,
+		};
+		paperData.forEach((v) => {
+			count.a += v.a;
+			count.c += v.c;
+			count.d += v.d;
+			count.m += v.m;
+			count.ns += v.ns;
+		});
+		return count.a * 5 + count.c * 3 + count.d - count.m * 10 - count.ns * 10;
+	}, [paperData]);
+	const hitFactor = React.useMemo(() => {
+		return totalScore/time;
+	}, [totalScore, time]);
 
 	function dq() {
 
@@ -265,9 +287,10 @@ export default function ScorePage() {
 			title: "Are you sure you want to set the score to DNF?",
 			confirmationButtonProps: {
 				color: "error",
+				variant: "contained",
 			},
-		}).then(() => {
-			updateScore({
+		}).then(async() => {
+			await updateScore({
 				variables: {
 					data: {
 						state: {
@@ -279,6 +302,78 @@ export default function ScorePage() {
 					},
 				},
 			});
+			router.back();
+		}).catch();
+	}
+
+	async function review() {
+		const count: PaperData = {
+			a: 0,
+			c: 0,
+			d: 0,
+			m: 0,
+			ns: 0,
+		};
+		paperData.forEach((v) => {
+			count.a += v.a;
+			count.c += v.c;
+			count.d += v.d;
+			count.m += v.m;
+			count.ns += v.ns;
+		});
+		confirm({
+			title: "Please check the score are filled correctly",
+			content:
+				<>
+					<Typography>A: {count.a}</Typography>
+					<Typography>C: {count.c}</Typography>
+					<Typography>D: {count.d}</Typography>
+					<Typography>M: {count.m}</Typography>
+					<Typography>NS: {count.ns}</Typography>
+					<Typography>Score: {totalScore}</Typography>
+					<Typography>Time: {time}</Typography>
+					<Typography>Hit factor: {hitFactor}</Typography>
+				</>
+			,
+			confirmationButtonProps: {
+				color: "success",
+				variant: "contained",
+			},
+		}).then(async() => {
+			await updateScore({
+				variables: {
+					data: {
+						state: {
+							set: ScoreState.Scored,
+						},
+						alphas: {
+							set: count.a,
+						},
+						charlies: {
+							set: count.c,
+						},
+						deltas: {
+							set: count.d,
+						},
+						misses: {
+							set: count.m,
+						},
+						noshoots: {
+							set: count.ns,
+						},
+						poppers: {
+							set: popper,
+						},
+						time: {
+							set: time,
+						},
+					},
+					where: {
+						id,
+					},
+				},
+			});
+			router.back();
 		}).catch();
 	}
 
@@ -364,7 +459,7 @@ export default function ScorePage() {
 						<ButtonGroup fullWidth variant="text">
 							<Button variant="contained" color="error" onClick={dq}>DQ</Button>
 							<Button variant="contained" color="warning" onClick={dnf}>DNF</Button>
-							<Button variant="contained" color="success">Review</Button>
+							<Button variant="contained" color="success" onClick={review}>Review</Button>
 						</ButtonGroup>
 					</Stack>
 				</Paper>
