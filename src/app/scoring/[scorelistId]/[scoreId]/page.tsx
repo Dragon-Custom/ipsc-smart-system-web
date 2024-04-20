@@ -1,13 +1,14 @@
 "use client";
 import Timer from "@/app/timer/timer";
-import { Mutation, MutationUpdateOneScoreArgs, Query, QueryFindUniqueScoreArgs, ScoreState } from "@/gql/graphql";
+import { Mutation, MutationUpdateOneScoreArgs, ProErrorsStoreCreateManyScoreInput, ProErrorsStoreCreateWithoutScoreInput, Query, QueryFindUniqueScoreArgs, ScoreState } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { Add, Remove } from "@mui/icons-material";
-import { Button, ButtonGroup, Container, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Grid, IconButton, MenuItem, Paper, Select, Stack, TextField, TextFieldProps, Typography } from "@mui/material";
+import { Button, ButtonGroup, Container, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid, IconButton, InputLabel, MenuItem, Paper, Select, Stack, TextField, TextFieldProps, Typography } from "@mui/material";
 import { useLongPress, useToggle } from "@uidotdev/usehooks";
 import { useConfirm } from "material-ui-confirm";
 import { useParams, useRouter } from "next/navigation";
 import React from "react";
+import ProErrorDialog, { ProErrorRecord } from "./proErrorDialog";
 
 
 const FetchQuery = gql`
@@ -42,6 +43,12 @@ const FetchQuery = gql`
 				}
 			}
 			time
+		}
+		findManyProErrorObjects {
+			description
+            id
+            index
+            title
 		}
 		findManyDqObjects {
 			category
@@ -264,8 +271,7 @@ export default function ScorePage() {
 	function closeTimerDialog() {
 		setTimerDialogOpen(false);
 	}
-	
-	const totalScore = React.useMemo(() => {
+	const paperCount = React.useMemo(() => {
 		const count: PaperData = {
 			a: 0,
 			c: 0,
@@ -280,11 +286,8 @@ export default function ScorePage() {
 			count.m += v.m;
 			count.ns += v.ns;
 		});
-		return count.a * 5 + count.c * 3 + count.d - count.m * 10 - count.ns * 10;
+		return count;
 	}, [paperData]);
-	const hitFactor = React.useMemo(() => {
-		return totalScore/time;
-	}, [totalScore, time]);
 
 	const [dqDialogOpen, toggleDqDialogOpen] = useToggle(false);
 	const [selectedDqCategory, setSelectedDqCategory] = React.useState("");
@@ -333,31 +336,18 @@ export default function ScorePage() {
 			router.back();
 		}).catch();
 	}
-
 	async function review() {
-		const count: PaperData = {
-			a: 0,
-			c: 0,
-			d: 0,
-			m: 0,
-			ns: 0,
-		};
-		paperData.forEach((v) => {
-			count.a += v.a;
-			count.c += v.c;
-			count.d += v.d;
-			count.m += v.m;
-			count.ns += v.ns;
-		});
 		confirm({
 			title: "Please check the score are filled correctly",
 			content:
 				<>
-					<Typography>A: {count.a}</Typography>
-					<Typography>C: {count.c}</Typography>
-					<Typography>D: {count.d}</Typography>
-					<Typography>M: {count.m}</Typography>
-					<Typography>NS: {count.ns}</Typography>
+					<Typography>A: {paperCount.a}</Typography>
+					<Typography>C: {paperCount.c}</Typography>
+					<Typography>D: {paperCount.d}</Typography>
+					<Typography>M: {paperCount.m}</Typography>
+					<Typography>NS: {paperCount.ns}</Typography>
+					<Typography>PE: {proErrosCount}</Typography>
+					<Typography>PP: {popper}</Typography>
 					<Typography>Score: {totalScore}</Typography>
 					<Typography>Time: {time}</Typography>
 					<Typography>Hit factor: {hitFactor}</Typography>
@@ -367,7 +357,17 @@ export default function ScorePage() {
 				color: "success",
 				variant: "contained",
 			},
-		}).then(async() => {
+		}).then(async () => {
+			const proErrorData: ProErrorsStoreCreateWithoutScoreInput[] = proError.map((v) => {
+				return {
+					count: v.count,
+					proError: {
+						connect: {
+							id: v.id,
+						},
+					},
+				};
+			});
 			await updateScore({
 				variables: {
 					data: {
@@ -375,25 +375,31 @@ export default function ScorePage() {
 							set: ScoreState.Scored,
 						},
 						alphas: {
-							set: count.a,
+							set: paperCount.a,
 						},
 						charlies: {
-							set: count.c,
+							set: paperCount.c,
 						},
 						deltas: {
-							set: count.d,
+							set: paperCount.d,
 						},
 						misses: {
-							set: count.m,
+							set: paperCount.m,
 						},
 						noshoots: {
-							set: count.ns,
+							set: paperCount.ns,
 						},
 						poppers: {
 							set: popper,
 						},
 						time: {
 							set: time,
+						},
+						proErrorCount: {
+							set: proErrosCount,
+						},
+						proErrors: {
+							create: proErrorData,
 						},
 					},
 					where: {
@@ -405,59 +411,86 @@ export default function ScorePage() {
 		}).catch();
 	}
 
+	const [proErrorOpen, toggleProErrorOpen] = useToggle(false);
+	const [proError, setProError] =	React.useState<ProErrorRecord[]>([]);
+
+	const proErrosCount = React.useMemo(() => {
+		let count = 0;
+		proError.forEach(v => count += v.count);
+		return count;
+	}, [proError]);
+	const totalScore = React.useMemo(() => {
+		return (paperCount.a * 5 + paperCount.c * 3 + paperCount.d + popper * 5 )- (paperCount.m * 10) - (paperCount.ns * 10) - (proErrosCount * 10);
+	}, [paperData, popper, proErrosCount]);
+	const hitFactor = React.useMemo(() => {
+		const hitFactor = totalScore / time;
+		if (isNaN(hitFactor))
+			return 0;
+		return hitFactor;
+	}, [totalScore, time]);
+	
 	if (!query.data?.findUniqueScore)
 		return <>Loading...</>;
 
 	const data = query.data.findUniqueScore;
 	return (
 		<>
-			<Dialog
-				open={dqDialogOpen}
-				onClose={() => toggleDqDialogOpen()}
-				keepMounted
-				maxWidth="md"
-				fullWidth
-				PaperProps={{
-					component: "form",
-					onSubmit: dq,
-				}}
-			>
-				<DialogTitle>Select DQ Reason</DialogTitle>
-				<DialogContent>
-					<Stack>
-						<Select
-							required
-							fullWidth
-							value={selectedDqCategory}
-							onChange={(v) => setSelectedDqCategory(v.target.value)}
-						>
-							{/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-							{Object.keys(Object.groupBy(query.data?.findManyDqObjects, ({ category }) => category)).map(v => {
-								return <MenuItem key={v} value={v} >{v}</MenuItem>;
-							})}
-						</Select>
-						<Select
-							required
-							fullWidth
-							value={selectedDqReason}
-							onChange={(v) => setSelectedDqReason(parseInt(v.target.value as string))}
-						>
-							{query.data?.findManyDqObjects.map(v => {
-								if (v.category !== selectedDqCategory)
-									return;
-								return <MenuItem key={v.index} value={v.id} >{v.title}</MenuItem>;
-							})}
-						</Select>
-						<Typography variant="h5">
-							{query.data?.findManyDqObjects.find(v => v.id == selectedDqReason)?.description}
-						</Typography>
-					</Stack>
-				</DialogContent>
-				<DialogActions>
-					<Button>Cancel</Button>
-					<Button variant="contained" color="error" type="submit">DQ</Button>
-				</DialogActions>
-			</Dialog>
+			{query.data?.findManyDqObjects ?
+				<Dialog
+					open={dqDialogOpen}
+					onClose={() => toggleDqDialogOpen()}
+					keepMounted
+					maxWidth="md"
+					fullWidth
+					PaperProps={{
+						component: "form",
+						onSubmit: dq,
+					}}
+				>
+					<DialogTitle>Select DQ Reason</DialogTitle>
+					<DialogContent>
+						<Stack gap={2} sx={{pt:2}}>
+							<FormControl>
+								<InputLabel>DQ Catergory</InputLabel>
+								<Select
+									label="DQ Catergory"
+									required
+									fullWidth
+									value={selectedDqCategory}
+									onChange={(v) => setSelectedDqCategory(v.target.value)}
+								>
+									{Object.keys(Object.groupBy(query.data?.findManyDqObjects, ({ category }) => category)).map(v => {
+										return <MenuItem key={v} value={v} >{v}</MenuItem>;
+									})}
+								</Select>
+							</FormControl>
+							<FormControl>
+								<InputLabel>DQ Reason</InputLabel>
+								<Select
+									required
+									fullWidth
+									value={selectedDqReason}
+									label="DQ Reason"
+									onChange={(v) => setSelectedDqReason(parseInt(v.target.value as string))}
+								>
+									{query.data?.findManyDqObjects.map(v => {
+										if (v.category !== selectedDqCategory)
+											return;
+										return <MenuItem key={v.index} value={v.id} >{v.title}</MenuItem>;
+									})}
+								</Select>
+							</FormControl>
+							<Typography variant="h5">
+								{query.data?.findManyDqObjects.find(v => v.id == selectedDqReason)?.description}
+							</Typography>
+						</Stack>
+					</DialogContent>
+					<DialogActions>
+						<Button onClick={() => toggleDqDialogOpen()}>Cancel</Button>
+						<Button variant="contained" color="error" type="submit">DQ</Button>
+					</DialogActions>
+				</Dialog>
+				: <></>}
 			<Dialog
 				open={timerDialogOpen}
 				onClose={closeTimerDialog}
@@ -465,6 +498,13 @@ export default function ScorePage() {
 			>
 				<Timer onAssign={(v) => { closeTimerDialog(); onTimeChange(v); }}/>
 			</Dialog>
+			<ProErrorDialog
+				onClose={() => toggleProErrorOpen()}
+				open={proErrorOpen}
+				proErrors={query.data.findManyProErrorObjects}
+				value={proError}
+				onChange={setProError}
+			/>
 			<Container maxWidth="sm" sx={{height:"100%"}}>
 				<Paper
 					elevation={2}
@@ -476,7 +516,7 @@ export default function ScorePage() {
 				>
 					<Stack spacing={2} sx={{height:"100%", mx: 2}} alignItems="center" > 
 						<Typography variant="h5" align="center">Shooter: {data.shooter.name}</Typography>
-						<Grid container spacing={0} justifyContent={"space-between"} sx={{px: 2}}>
+						<Grid container spacing={2} justifyContent={"space-between"} sx={{px: 2}}>
 							<ScoreInputControll
 								label="Time"
 								InputProps={{ endAdornment: "s" }}
@@ -487,7 +527,7 @@ export default function ScorePage() {
 								onChange={(a, v) => onTimeChange(v)}
 							/>
 							<Grid item xs={12} sm={6}>
-								<Button fullWidth sx={{height:"100%"}} onClick={openTimerDialog}>Open Timer</Button>
+								<Button fullWidth sx={{height:"100%"}} variant="outlined" onClick={openTimerDialog}>Open Timer</Button>
 							</Grid>
 							<ScoreInputControll
 								label="Poppers"
@@ -530,12 +570,23 @@ export default function ScorePage() {
 								onChange={PaperDataChange}
 							/>)}
 						</Stack>
-						<Button fullWidth variant="outlined" color="secondary">Pro errors</Button>
+						<Button fullWidth variant="outlined" color="secondary" onClick={() => toggleProErrorOpen()}>Pro errors</Button>
 						<ButtonGroup fullWidth variant="text">
 							<Button variant="contained" color="error" onClick={() => toggleDqDialogOpen()}>DQ</Button>
 							<Button variant="contained" color="warning" onClick={dnf}>DNF</Button>
 							<Button variant="contained" color="success" onClick={review}>Review</Button>
 						</ButtonGroup>
+						<Typography sx={(theme) => {
+							return {
+								...theme.typography.button,
+								background: theme.palette.background.default,
+								width: "100%",
+								p: 2,
+								textAlign: "center",
+							};
+						}}>
+							{paperCount.a}A {paperCount.c}C {paperCount.d}D {popper}PP {paperCount.m}M {paperCount.ns}NS {proErrosCount}PE {time}s {hitFactor}HF
+						</Typography>
 					</Stack>
 				</Paper>
 			</Container>

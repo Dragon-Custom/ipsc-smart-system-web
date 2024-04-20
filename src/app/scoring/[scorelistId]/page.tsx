@@ -13,10 +13,12 @@ import { RowClassParams } from "ag-grid-community";
 import {
 	Box,
 	Button,
+	FormControlLabel,
 	Paper,
 	SpeedDial,
 	SpeedDialAction,
 	SpeedDialIcon,
+	Switch,
 	Tab,
 	Tabs,
 	Typography,
@@ -27,6 +29,7 @@ import { useParams, useRouter } from "next/navigation";
 import React from "react";
 import { ColDef, RowClickedEvent, RowDragEndEvent } from "@ag-grid-community/core";
 import JoinShooterDialog from "./joinShooterDialog";
+import { useToggle } from "@uidotdev/usehooks";
 
 const FetchQuery = gql`
     query ($where: ScorelistWhereUniqueInput!) {
@@ -297,6 +300,8 @@ export default function ScorelistPage() {
 		return;
 	};
 
+	const [enableOrdering, toggleOrdering] = useToggle(false);
+
 	// #region error handling
 	if (query.error) return <>ERROR: {JSON.stringify(query.error)}</>;
 
@@ -338,6 +343,7 @@ export default function ScorelistPage() {
 					<Button onClick={() => autoSizeAll(false)}>
                         Resize the grid
 					</Button>
+					<FormControlLabel value={enableOrdering} onChange={() => toggleOrdering()} control={<Switch />} label="Enable ordering" />
 					{/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
 					{/* @ts-ignore */}
 					<AgGridReact
@@ -348,8 +354,9 @@ export default function ScorelistPage() {
 						autoSizeStrategy={autoSizeStrategy}
 						getRowStyle={getRowStyle}
 						onRowDragEnd={onRowDragEnd}
-						rowDragEntireRow={true}
-						rowDragMultiRow={true}
+						rowDragEntireRow={enableOrdering}
+						rowDragMultiRow={enableOrdering}
+						suppressRowDrag={!enableOrdering}
 					/>
 				</div>
 			</Paper>
