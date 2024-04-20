@@ -3,8 +3,8 @@ import Timer from "@/app/timer/timer";
 import { Mutation, MutationUpdateOneScoreArgs, Query, QueryFindUniqueScoreArgs, ScoreState } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { Add, Remove } from "@mui/icons-material";
-import { Button, ButtonGroup, Container, Dialog, Divider, Grid, IconButton, Paper, Stack, TextField, TextFieldProps, Typography } from "@mui/material";
-import { useLongPress } from "@uidotdev/usehooks";
+import { Button, ButtonGroup, Container, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Grid, IconButton, MenuItem, Paper, Select, Stack, TextField, TextFieldProps, Typography } from "@mui/material";
+import { useLongPress, useToggle } from "@uidotdev/usehooks";
 import { useConfirm } from "material-ui-confirm";
 import { useParams, useRouter } from "next/navigation";
 import React from "react";
@@ -42,6 +42,13 @@ const FetchQuery = gql`
 				}
 			}
 			time
+		}
+		findManyDqObjects {
+			category
+			description
+			id
+			index
+			title
 		}
 	}
 `;
@@ -279,8 +286,29 @@ export default function ScorePage() {
 		return totalScore/time;
 	}, [totalScore, time]);
 
-	function dq() {
-
+	const [dqDialogOpen, toggleDqDialogOpen] = useToggle(false);
+	const [selectedDqCategory, setSelectedDqCategory] = React.useState("");
+	const [selectedDqReason, setSelectedDqReason] = React.useState(0);
+	async function dq(event: Event) {
+		event.preventDefault();
+		await updateScore({
+			variables: {
+				data: {
+					state: {
+						set: ScoreState.Dq,
+					},
+					dqReason: {
+						connect: {
+							id: selectedDqReason,
+						},
+					},
+				},
+				where: {
+					id,
+				},
+			},
+		});
+		router.back();
 	}
 	function dnf() {
 		confirm({
@@ -384,6 +412,53 @@ export default function ScorePage() {
 	return (
 		<>
 			<Dialog
+				open={dqDialogOpen}
+				onClose={() => toggleDqDialogOpen()}
+				keepMounted
+				maxWidth="md"
+				fullWidth
+				PaperProps={{
+					component: "form",
+					onSubmit: dq,
+				}}
+			>
+				<DialogTitle>Select DQ Reason</DialogTitle>
+				<DialogContent>
+					<Stack>
+						<Select
+							required
+							fullWidth
+							value={selectedDqCategory}
+							onChange={(v) => setSelectedDqCategory(v.target.value)}
+						>
+							{/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+							{Object.keys(Object.groupBy(query.data?.findManyDqObjects, ({ category }) => category)).map(v => {
+								return <MenuItem key={v} value={v} >{v}</MenuItem>;
+							})}
+						</Select>
+						<Select
+							required
+							fullWidth
+							value={selectedDqReason}
+							onChange={(v) => setSelectedDqReason(parseInt(v.target.value as string))}
+						>
+							{query.data?.findManyDqObjects.map(v => {
+								if (v.category !== selectedDqCategory)
+									return;
+								return <MenuItem key={v.index} value={v.id} >{v.title}</MenuItem>;
+							})}
+						</Select>
+						<Typography variant="h5">
+							{query.data?.findManyDqObjects.find(v => v.id == selectedDqReason)?.description}
+						</Typography>
+					</Stack>
+				</DialogContent>
+				<DialogActions>
+					<Button>Cancel</Button>
+					<Button variant="contained" color="error" type="submit">DQ</Button>
+				</DialogActions>
+			</Dialog>
+			<Dialog
 				open={timerDialogOpen}
 				onClose={closeTimerDialog}
 				keepMounted
@@ -457,7 +532,7 @@ export default function ScorePage() {
 						</Stack>
 						<Button fullWidth variant="outlined" color="secondary">Pro errors</Button>
 						<ButtonGroup fullWidth variant="text">
-							<Button variant="contained" color="error" onClick={dq}>DQ</Button>
+							<Button variant="contained" color="error" onClick={() => toggleDqDialogOpen()}>DQ</Button>
 							<Button variant="contained" color="warning" onClick={dnf}>DNF</Button>
 							<Button variant="contained" color="success" onClick={review}>Review</Button>
 						</ButtonGroup>
