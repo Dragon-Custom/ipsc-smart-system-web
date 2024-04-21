@@ -1,6 +1,5 @@
 "use client";
 import { Mutation, MutationCopyShootersFromRoundToRoundArgs, MutationCreateOneScoreArgs, Query } from "@/gql/graphql";
-import { delay } from "@/lib/utils";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import { useLoading } from "mui-loading";

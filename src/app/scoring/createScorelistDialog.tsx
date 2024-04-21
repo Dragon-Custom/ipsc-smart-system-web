@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormLabel, InputLabel, MenuItem, Select, Stack } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, Stack } from "@mui/material";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { Mutation, MutationCreateOneScorelistArgs, Query } from "@/gql/graphql";
 import StageCard from "../stages/stageCard";
@@ -78,7 +78,7 @@ export default function CreateScorelistDialog(props: CreateScorelistDialogProps)
 				},
 			},
 		});
-		props.onClose();
+		props.onClose?.();
 	}
 	
 	return (
