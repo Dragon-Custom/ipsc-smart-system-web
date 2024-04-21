@@ -59,6 +59,7 @@ const FetchQuery = gql`
                 hitFactor
                 proErrorCount
                 roundPrecentage
+				scorelistOverallPrecentage
                 state
                 poppers
             }
@@ -107,7 +108,7 @@ interface ScoreItem {
     ProErrors: number;
     Time: number;
     HitFactor: string;
-    Precentage: string;
+    Precentage: number;
     Id: number;
     State: string;
     Round?: number;
@@ -187,7 +188,7 @@ export default function ScorelistPage() {
 				ProErrors: v.proErrorCount,
 				Time: v.time,
 				HitFactor: parseFloat(v.hitFactor).toFixed(2),
-				Precentage: `${v.roundPrecentage.toFixed(1)}%`,
+				Precentage: selectedRound == 0 ? v.scorelistOverallPrecentage : v.roundPrecentage,
 				State: v.state,
 				Round: selectedRound == 0 ? v.round : undefined,
 			});
@@ -238,7 +239,7 @@ export default function ScorelistPage() {
 	const [colDefs, setColDefs] = React.useState<ColDef<ScoreItem>[]>([
 		{ field: "Id", hide: true, pinned: true, maxWidth: 80 },
 		{ field: "Round", pinned: true },
-		{ field: "Name", flex: 500, pinned: true, rowDrag: true },
+		{ field: "Name", pinned: true, rowDrag: true },
 		{ field: "A", minWidth: 5 },
 		{ field: "C", minWidth: 5 },
 		{ field: "D", minWidth: 5 },
@@ -246,9 +247,9 @@ export default function ScorelistPage() {
 		{ field: "NoShoots", minWidth: 100 },
 		{ field: "Popper", minWidth: 80 },
 		{ field: "ProErrors", minWidth: 100 },
-		{ field: "Time" },
-		{ field: "HitFactor", flex: 2 },
-		{ field: "Precentage", flex: 2 },
+		{ field: "Time" , valueFormatter: (v) => `${v.value.toFixed(2)}s`},
+		{ field: "HitFactor"},
+		{ field: "Precentage", valueFormatter: (v) => `${v.value.toFixed(1)}%`},
 		{ field: "State", hide: true },
 	]);
 
@@ -271,7 +272,12 @@ export default function ScorelistPage() {
 	// #endregion
 	React.useEffect(() => {
 		refreshGrid();
+		if(gridRef.current?.api)
+			autoSizeAll(false);
 	}, [selectedRound, query]);
+	React.useEffect(() => {		
+		setTimeout(() => autoSizeAll(false), 1000);
+	}, [gridRef]);
 	React.useEffect(() => {
 		gridRef.current?.api.autoSizeAllColumns();
 	}, [gridRef]);

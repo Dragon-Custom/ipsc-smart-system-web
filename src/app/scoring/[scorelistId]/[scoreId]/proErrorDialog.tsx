@@ -21,7 +21,8 @@ export default function ProErrorDialog(props: ProErrorDialogProps) {
 	function add() {
 		if (props.value.findIndex(t => t.id === selectedNewProError) > -1)
 			return;
-		props.onChange([...props.value, { id: selectedNewProError, count: 0 }]);
+		if (props.proErrors.findIndex(t => t.id === selectedNewProError) > -1)
+			props.onChange([...props.value, { id: selectedNewProError, count: 0 }]);
 	}
 
 	function increament(id: number, val?: number) {

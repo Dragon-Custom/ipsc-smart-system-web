@@ -350,7 +350,7 @@ export default function ScorePage() {
 					<Typography>PP: {popper}</Typography>
 					<Typography>Score: {totalScore}</Typography>
 					<Typography>Time: {time}</Typography>
-					<Typography>Hit factor: {hitFactor}</Typography>
+					<Typography>Hit factor: {hitFactor.toFixed(2)}</Typography>
 				</>
 			,
 			confirmationButtonProps: {
@@ -585,7 +585,7 @@ export default function ScorePage() {
 								textAlign: "center",
 							};
 						}}>
-							{paperCount.a}A {paperCount.c}C {paperCount.d}D {popper}PP {paperCount.m}M {paperCount.ns}NS {proErrosCount}PE {time}s {hitFactor}HF
+							{paperCount.a}A {paperCount.c}C {paperCount.d}D {popper}PP {paperCount.m}M {paperCount.ns}NS {proErrosCount}PE {time}s {hitFactor.toFixed(2)}HF
 						</Typography>
 					</Stack>
 				</Paper>
