@@ -9,23 +9,15 @@ import "@fontsource/roboto/700.css";
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the grid
 import "ag-grid-community/styles/ag-theme-alpine.css"; // Optional Theme applied to the grid
 import GlobalLayoutAppBar from "@/components/GlobalLayout/GlobalLayoutAppBar";
-import { Paper, Stack, ThemeProvider, Toolbar, createTheme } from "@mui/material";
+import { Paper, Stack, ThemeProvider, Toolbar, createTheme, useMediaQuery } from "@mui/material";
 import { ConfirmProvider } from "material-ui-confirm";
 import GlobalLayoutSideBar from "@/components/GlobalLayout/GlobalLayoutSideBar";
 import { ApolloProvider } from "@apollo/client";
-import { client } from "./apolloClient";
+import { client } from "../lib/clientApollo";
+import { LoadingProvider } from "mui-loading";
 
 
 const INTER = inter({ subsets: ["latin"] });
-
-const THEME = createTheme({
-	palette: {
-		mode: "dark",
-	},
-});
-
-
-
 
 
 type SidebarAction = "close" | "open";
@@ -45,6 +37,16 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
 	const [sideBarState, dispatch] = React.useReducer(sideBarReducer, false);
+	const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+	const mode = React.useMemo(() => {
+		return prefersDarkMode ? "dark" : "light";
+	}, [prefersDarkMode]);
+
+	const THEME = createTheme({
+		palette: {
+			mode,
+		},
+	});
 
 	return (
 		<html lang="en">
@@ -52,28 +54,31 @@ export default function RootLayout({
 				<ThemeProvider theme={THEME}>
 					<ApolloProvider client={client}>
 						<ConfirmProvider>
-							<GlobalLayoutSideBar
-								open={sideBarState}
-								onClose={() => dispatch("close")}
-								onOpen={() => dispatch("open")}
-							/>
-							<GlobalLayoutAppBar
-								onMenuClick={() => dispatch("open")}
-							/>
-							<Stack sx={{width:"100%", top:0}}>
-								<Toolbar />
-								<Paper elevation={1} sx={{height:"100%", p:2}}>{children}</Paper>
-							</Stack>
-							<Paper
-								elevation={1}
-								style={{
-									top: 0,
-									right: 0,
-									left: 0,
-									bottom: 0,
-									position: "absolute",
-									zIndex: -1000,
-								}}/>
+							<LoadingProvider>
+								
+								<GlobalLayoutSideBar
+									open={sideBarState}
+									onClose={() => dispatch("close")}
+									onOpen={() => dispatch("open")}
+								/>
+								<GlobalLayoutAppBar
+									onMenuClick={() => dispatch("open")}
+								/>
+								<Stack sx={{width:"100%", top:0, height: "100vh"}}>
+									<Toolbar />
+									<Paper elevation={1} sx={{height:"100%", p:2, top:0, bottom:0, overflow:"auto"}}>{children}</Paper>
+								</Stack>
+								<Paper
+									elevation={1}
+									style={{
+										top: 0,
+										right: 0,
+										left: 0,
+										bottom: 0,
+										position: "fixed",
+										zIndex: -1000,
+									}}/>
+							</LoadingProvider>
 						</ConfirmProvider>
 					</ApolloProvider>
 				</ThemeProvider>

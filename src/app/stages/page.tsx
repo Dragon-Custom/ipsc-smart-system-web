@@ -83,6 +83,7 @@ export default function Stages() {
 						onChange={onTabIndexChange}
 						variant="scrollable"
 						orientation="vertical"
+						sx={{borderRight: 1, borderColor: "divider"}}
 					>
 						<Tab label="All" value={"All"}/>
 						<Tab label="Short" value={"Short"}/>
@@ -114,7 +115,7 @@ export default function Stages() {
 
 			<SpeedDial
 				ariaLabel="Stage operation"
-				sx={{ position: "fixed", bottom: 16, right: 16 }}
+				sx={{ position: "fixed", bottom: 20, right: 20 }}
 				icon={<SpeedDialIcon />}
 			>
 				<SpeedDialAction
