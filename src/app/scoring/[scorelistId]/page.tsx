@@ -1,6 +1,7 @@
 "use client";
 import {
 	Mutation,
+	MutationCopyShootersFromRoundToRoundArgs,
 	MutationSwapIdArgs,
 	MutationUpdateOneScorelistArgs,
 	Query,
@@ -13,11 +14,13 @@ import { RowClassParams } from "ag-grid-community";
 import {
 	Box,
 	Button,
+	ButtonGroup,
 	FormControlLabel,
 	Paper,
 	SpeedDial,
 	SpeedDialAction,
 	SpeedDialIcon,
+	Stack,
 	Switch,
 	Tab,
 	Tabs,
@@ -30,6 +33,8 @@ import React from "react";
 import { ColDef, RowClickedEvent, RowDragEndEvent } from "@ag-grid-community/core";
 import JoinShooterDialog from "./joinShooterDialog";
 import { useToggle } from "@uidotdev/usehooks";
+import { useLoading } from "mui-loading";
+import { shuffle } from "@/lib/utils";
 
 const FetchQuery = gql`
     query ($where: ScorelistWhereUniqueInput!) {
@@ -97,6 +102,12 @@ const SubscriptScoreChange = gql`
     }
 `;
 
+const CopyShootersFromRoundToRoundMutation = gql`
+	mutation($scorelistId: Int!, $fromRound: Int!, $toRound:Int!) {
+		copyShootersFromRoundToRound(scorelistId: $scorelistId, fromRound: $fromRound, toRound:$toRound)
+	}
+`;
+
 interface ScoreItem {
     Name: string;
     A: number;
@@ -122,7 +133,12 @@ export default function ScorelistPage() {
 	const theme = useTheme();
 	useSubscription(SubscriptScorelistChange, {
 		async onData() {
-			await query.refetch();
+			loading?.startLoading();
+			try {
+				await query.refetch();
+			} finally {
+				loading?.stopLoading();
+			}
 		},
 	});
 	useSubscription(SubscriptScoreChange, {
@@ -237,7 +253,7 @@ export default function ScorelistPage() {
 
 	// Column Definitions: Defines the columns to be displayed.
 	const [colDefs, setColDefs] = React.useState<ColDef<ScoreItem>[]>([
-		{ field: "Id", hide: true, pinned: true, maxWidth: 80 },
+		{ field: "Id", hide: false, pinned: true, maxWidth: 80 },
 		{ field: "Round", pinned: true },
 		{ field: "Name", pinned: true, rowDrag: true },
 		{ field: "A", minWidth: 5 },
@@ -308,6 +324,41 @@ export default function ScorelistPage() {
 
 	const [enableOrdering, toggleOrdering] = useToggle(false);
 
+	const loading = useLoading();
+
+	const [copyShootersFromRoundToRound] = useMutation<Mutation["copyShootersFromRoundToRound"], MutationCopyShootersFromRoundToRoundArgs>(CopyShootersFromRoundToRoundMutation);
+	async function copyFromPreviousRound() {
+		loading?.startLoading();
+		try {
+			await copyShootersFromRoundToRound({
+				variables: {
+					scorelistId: id,
+					fromRound: selectedRound - 1,
+					toRound: selectedRound,
+				},
+			});
+		} finally {
+			loading?.stopLoading();
+		}
+	}
+
+	async function randomizeOrder() {
+		try {
+			const roundIds = data.scores.filter(v => v.round === selectedRound).map(v => v.id);
+			await shuffle(roundIds, async(src, dest) => {
+				loading?.startLoading();
+				await swap({
+					variables: {
+						id1: roundIds[src],
+						id2: roundIds[dest],
+					},
+				});
+			});
+		} finally {
+			loading?.stopLoading();
+		}
+	}
+
 	// #region error handling
 	if (query.error) return <>ERROR: {JSON.stringify(query.error)}</>;
 
@@ -346,10 +397,23 @@ export default function ScorelistPage() {
 					className="ag-theme-alpine-dark" // applying the grid theme
 					style={{ height: 500 }} // the grid will fill the size of the parent container
 				>
-					<Button onClick={() => autoSizeAll(false)}>
-                        Resize the grid
-					</Button>
-					<FormControlLabel value={enableOrdering} onChange={() => toggleOrdering()} control={<Switch />} label="Enable ordering" />
+					<Stack direction={"row"} gap={2}>
+						<ButtonGroup variant="text">
+							<Button onClick={() => autoSizeAll(false)}>
+								Resize the grid
+							</Button>
+							<Button onClick={copyFromPreviousRound}>
+								Copy shooters from the previous round
+							</Button>
+							<Button onClick={randomizeOrder}>
+								Randomize shooters order
+							</Button>
+							<Button onClick={() => autoSizeAll(false)} color="error">
+								Delete rounds
+							</Button>
+						</ButtonGroup>
+						<FormControlLabel value={enableOrdering} onChange={() => toggleOrdering()} control={<Switch />} label="Enable ordering" />
+					</Stack>
 					{/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
 					{/* @ts-ignore */}
 					<AgGridReact
