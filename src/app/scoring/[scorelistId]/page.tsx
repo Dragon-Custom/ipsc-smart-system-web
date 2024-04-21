@@ -1,7 +1,6 @@
 "use client";
 import {
 	Mutation,
-	MutationCopyShootersFromRoundToRoundArgs,
 	MutationSwapIdArgs,
 	MutationUpdateOneScorelistArgs,
 	Query,
@@ -25,6 +24,7 @@ import {
 	Tab,
 	Tabs,
 	Typography,
+	useMediaQuery,
 	useTheme,
 } from "@mui/material";
 import { AgGridReact } from "ag-grid-react";
@@ -102,12 +102,6 @@ const SubscriptScoreChange = gql`
     }
 `;
 
-const CopyShootersFromRoundToRoundMutation = gql`
-	mutation($scorelistId: Int!, $fromRound: Int!, $toRound:Int!) {
-		copyShootersFromRoundToRound(scorelistId: $scorelistId, fromRound: $fromRound, toRound:$toRound)
-	}
-`;
-
 interface ScoreItem {
     Name: string;
     A: number;
@@ -150,6 +144,7 @@ export default function ScorelistPage() {
         Mutation["updateOneScorelist"],
         MutationUpdateOneScorelistArgs
     >(UpdateOneScorelist);
+	const [selectedRound, setSelectedRound] = React.useState(0);
 	const query = useQuery<Query, QueryFindUniqueScorelistArgs>(FetchQuery, {
 		variables: {
 			where: {
@@ -159,6 +154,7 @@ export default function ScorelistPage() {
 		onCompleted() {
 			refreshGrid();
 		},
+		pollInterval: 10000,
 		fetchPolicy: "no-cache",
 	});
 
@@ -214,7 +210,6 @@ export default function ScorelistPage() {
 		newColDefs[1].hide = selectedRound !== 0;
 		setColDefs(newColDefs);
 	}
-	const [selectedRound, setSelectedRound] = React.useState(0);
 
 	const [joinShooterDialogOpem, setJoinShooterDialogOpem] =
         React.useState(false);
@@ -228,7 +223,6 @@ export default function ScorelistPage() {
 	const [ swap ] = useMutation<Mutation["swapId"], MutationSwapIdArgs>(SwapMutation);
 	const onRowDragEnd = React.useCallback((event: RowDragEndEvent<ScoreItem>) => {
 		try {
-
 			const movingNode = event.node;
 			const overNode = event.overNode;
 			const movingData = movingNode.data;
@@ -253,7 +247,7 @@ export default function ScorelistPage() {
 
 	// Column Definitions: Defines the columns to be displayed.
 	const [colDefs, setColDefs] = React.useState<ColDef<ScoreItem>[]>([
-		{ field: "Id", hide: false, pinned: true, maxWidth: 80 },
+		{ field: "Id", hide: true, pinned: true, maxWidth: 80 },
 		{ field: "Round", pinned: true },
 		{ field: "Name", pinned: true, rowDrag: true },
 		{ field: "A", minWidth: 5 },
@@ -274,28 +268,28 @@ export default function ScorelistPage() {
 	};
 	const gridRef = React.useRef<AgGridReact>(null);
 	const autoSizeAll = React.useCallback((skipHeader: boolean) => {
-		const allColumnIds: string[] = [];
-		gridRef.current!.api.getColumns()!.forEach((column) => {
-			allColumnIds.push(column.getId());
-		});
-        gridRef.current!.api.autoSizeColumns(allColumnIds, skipHeader);
+		try {
+
+			const allColumnIds: string[] = [];
+			gridRef.current!.api.getColumns()!.forEach((column) => {
+				allColumnIds.push(column.getId());
+			});
+			gridRef.current!.api.autoSizeColumns(allColumnIds, skipHeader);
+		} catch (e) { /* empty */ }
 	}, []);
 
 	function onRowClicked(event: RowClickedEvent<ScoreItem>) {
 		router.push(`${id}/${event.data?.Id}`);
 	}
+	const [enableOrdering, toggleOrdering] = useToggle(false);
 
 	// #endregion
 	React.useEffect(() => {
 		refreshGrid();
-		if(gridRef.current?.api)
-			autoSizeAll(false);
-	}, [selectedRound, query]);
+		setTimeout(() => autoSizeAll(false), 500);
+	}, [selectedRound, query, enableOrdering]);
 	React.useEffect(() => {		
 		setTimeout(() => autoSizeAll(false), 1000);
-	}, [gridRef]);
-	React.useEffect(() => {
-		gridRef.current?.api.autoSizeAllColumns();
 	}, [gridRef]);
 
 	const getRowStyle = (params: RowClassParams<ScoreItem>) => {
@@ -322,25 +316,7 @@ export default function ScorelistPage() {
 		return;
 	};
 
-	const [enableOrdering, toggleOrdering] = useToggle(false);
-
 	const loading = useLoading();
-
-	const [copyShootersFromRoundToRound] = useMutation<Mutation["copyShootersFromRoundToRound"], MutationCopyShootersFromRoundToRoundArgs>(CopyShootersFromRoundToRoundMutation);
-	async function copyFromPreviousRound() {
-		loading?.startLoading();
-		try {
-			await copyShootersFromRoundToRound({
-				variables: {
-					scorelistId: id,
-					fromRound: selectedRound - 1,
-					toRound: selectedRound,
-				},
-			});
-		} finally {
-			loading?.stopLoading();
-		}
-	}
 
 	async function randomizeOrder() {
 		try {
@@ -358,6 +334,8 @@ export default function ScorelistPage() {
 			loading?.stopLoading();
 		}
 	}
+
+	const mobileBreakpoint = useMediaQuery(theme.breakpoints.up("md"));
 
 	// #region error handling
 	if (query.error) return <>ERROR: {JSON.stringify(query.error)}</>;
@@ -397,22 +375,20 @@ export default function ScorelistPage() {
 					className="ag-theme-alpine-dark" // applying the grid theme
 					style={{ height: 500 }} // the grid will fill the size of the parent container
 				>
-					<Stack direction={"row"} gap={2}>
-						<ButtonGroup variant="text">
+					<Stack direction={mobileBreakpoint ? "row" : "column"} justifyContent={"space-between"} gap={2}>
+						<Stack direction={"row"} gap={2}>
 							<Button onClick={() => autoSizeAll(false)}>
 								Resize the grid
 							</Button>
-							<Button onClick={copyFromPreviousRound}>
-								Copy shooters from the previous round
-							</Button>
-							<Button onClick={randomizeOrder}>
-								Randomize shooters order
-							</Button>
-							<Button onClick={() => autoSizeAll(false)} color="error">
-								Delete rounds
-							</Button>
-						</ButtonGroup>
-						<FormControlLabel value={enableOrdering} onChange={() => toggleOrdering()} control={<Switch />} label="Enable ordering" />
+							<FormControlLabel value={enableOrdering} onChange={() => toggleOrdering()} control={<Switch />} label="Enable ordering" />
+						</Stack>
+						<Stack direction={mobileBreakpoint ? "row" : "row-reverse"} gap={2}>
+							<ButtonGroup variant="text">
+								<Button onClick={randomizeOrder}>
+								Reshuffle
+								</Button>
+							</ButtonGroup>
+						</Stack>
 					</Stack>
 					{/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
 					{/* @ts-ignore */}
@@ -455,6 +431,7 @@ export default function ScorelistPage() {
 				onClose={closeJoinShooterDialog}
 				scorelistId={id}
 				round={selectedRound}
+				selectedRound={selectedRound}
 			/>
 		</>
 	);

@@ -1,5 +1,6 @@
 "use client";
-import { Mutation, MutationCreateOneScoreArgs, Query } from "@/gql/graphql";
+import { Mutation, MutationCopyShootersFromRoundToRoundArgs, MutationCreateOneScoreArgs, Query } from "@/gql/graphql";
+import { delay } from "@/lib/utils";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import { useLoading } from "mui-loading";
@@ -27,7 +28,15 @@ interface JoinShooterDialogProps {
 	onClose: () => void;
 	scorelistId: number;
 	round: number;
+	selectedRound: number
 }
+
+const CopyShootersFromRoundToRoundMutation = gql`
+	mutation($scorelistId: Int!, $fromRound: Int!, $toRound:Int!) {
+		copyShootersFromRoundToRound(scorelistId: $scorelistId, fromRound: $fromRound, toRound:$toRound)
+	}
+`;
+
 export default function JoinShooterDialog(props: JoinShooterDialogProps) {
 	const query = useQuery<Query>(FetchQuery);
 	const [createScore] = useMutation<Mutation["createOneScore"], MutationCreateOneScoreArgs>(CreateOneScore);
@@ -38,9 +47,21 @@ export default function JoinShooterDialog(props: JoinShooterDialogProps) {
 		setSelectedShooters(val);
 	}
 
-	if (!query.data?.findManyShooter)
-		return <>Loading...</>;
-	const data = query.data?.findManyShooter;
+	const [copyShootersFromRoundToRound] = useMutation<Mutation["copyShootersFromRoundToRound"], MutationCopyShootersFromRoundToRoundArgs>(CopyShootersFromRoundToRoundMutation);
+	async function copyFromPreviousRound() {
+		loading?.startLoading();
+		try {
+			await copyShootersFromRoundToRound({
+				variables: {
+					scorelistId: props.scorelistId,
+					fromRound: props.selectedRound - 1,
+					toRound: props.selectedRound,
+				},
+			});
+		} finally {
+			loading?.stopLoading();
+		}
+	}
 
 
 	async function joinShooter() {
@@ -69,7 +90,9 @@ export default function JoinShooterDialog(props: JoinShooterDialogProps) {
 		props.onClose();
 		loading?.stopLoading();
 	}
-
+	if (!query.data?.findManyShooter)
+		return <>Loading...</>;
+	const data = query.data?.findManyShooter;
 	return (
 		<>
 			<Dialog fullWidth maxWidth="md" open={props.open} onClose={props.onClose}>
@@ -99,6 +122,7 @@ export default function JoinShooterDialog(props: JoinShooterDialogProps) {
 					</FormControl>
 				</DialogContent>
 				<DialogActions>
+					<Button onClick={copyFromPreviousRound}>Join from previous round</Button>
 					<Button onClick={props.onClose}>Cancel</Button>
 					<Button onClick={joinShooter}>Join</Button>
 				</DialogActions>
