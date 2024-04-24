@@ -1,6 +1,6 @@
 "use client";
 import Timer from "@/app/timer/timer";
-import { Mutation, MutationUpdateOneScoreArgs, ProErrorsStoreCreateWithoutScoreInput, Query, QueryFindUniqueScoreArgs, ScoreState } from "@/gql/graphql";
+import { Mutation, MutationUpdateAccuracyArgs, MutationUpdateOneScoreArgs, ProErrorsStoreCreateWithoutScoreInput, Query, QueryFindUniqueScoreArgs, ScoreState } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { Add, Remove } from "@mui/icons-material";
 import { Button, ButtonGroup, Container, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid, IconButton, InputLabel, MenuItem, Paper, Select, Stack, TextField, TextFieldProps, Typography } from "@mui/material";
@@ -68,6 +68,11 @@ const UpdateOneScoreMutation = gql`
 	}
 `;
 
+const UpdateAccuracy = gql`
+	mutation ($scoreId: Int!) {
+		updateAccuracy(scoreId: $scoreId)
+	}
+`;
 
 interface ScoreInputControllProps extends Omit<TextFieldProps<"standard">, "onChange"> {
 	hideIncreamentButton?: boolean;
@@ -292,6 +297,7 @@ export default function ScorePage() {
 	const [dqDialogOpen, toggleDqDialogOpen] = useToggle(false);
 	const [selectedDqCategory, setSelectedDqCategory] = React.useState("");
 	const [selectedDqReason, setSelectedDqReason] = React.useState(0);
+	const [ updateAccuracy ] = useMutation<Mutation, MutationUpdateAccuracyArgs>(UpdateAccuracy);
 	async function dq(event: Event) {
 		event.preventDefault();
 		await updateScore({
@@ -405,6 +411,11 @@ export default function ScorePage() {
 					where: {
 						id,
 					},
+				},
+			});
+			await updateAccuracy({
+				variables: {
+					scoreId: id,
 				},
 			});
 			router.back();

@@ -46,6 +46,7 @@ const FetchQuery = gql`
             createAt
             id
             scores {
+				accuracy
                 alphas
                 charlies
                 deltas
@@ -116,7 +117,8 @@ interface ScoreItem {
     Precentage: number;
     Id: number;
     State: string;
-    Round?: number;
+	Round?: number;
+	Accuracy: number;
 }
 
 export default function ScorelistPage() {
@@ -203,6 +205,7 @@ export default function ScorelistPage() {
 				Precentage: selectedRound == 0 ? v.scorelistOverallPrecentage : v.roundPrecentage,
 				State: v.state,
 				Round: selectedRound == 0 ? v.round : undefined,
+				Accuracy: v.accuracy,
 			});
 		});
 		setRowData([...Rows.toSorted((a, b) => a.Id - b.Id)]);
@@ -261,6 +264,7 @@ export default function ScorelistPage() {
 		{ field: "HitFactor"},
 		{ field: "Precentage", valueFormatter: (v) => `${v.value.toFixed(1)}%`},
 		{ field: "State", hide: true },
+		{ field: "Accuracy" },
 	]);
 
 	const autoSizeStrategy = {
