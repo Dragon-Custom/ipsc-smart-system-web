@@ -7,6 +7,8 @@ import { gql, useMutation } from "@apollo/client";
 const DivisionArray: { label: string; value: string }[] = [];
 for (const key in Division) {
 	if (Object.prototype.hasOwnProperty.call(Division, key)) {
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-expect-error
 		DivisionArray.push({ label: key, value: Division[key] });
 	}
 }
