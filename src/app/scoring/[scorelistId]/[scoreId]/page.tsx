@@ -1,4 +1,11 @@
 "use client";
+export const dynamic = "auto";
+export const dynamicParams = true;
+export const revalidate = false;
+export const fetchCache = "auto";
+export const runtime = "edge";
+export const preferredRegion = "auto";
+
 import Timer from "@/app/timer/timer";
 import { Mutation, MutationUpdateAccuracyArgs, MutationUpdateOneScoreArgs, ProErrorsStoreCreateWithoutScoreInput, Query, QueryFindUniqueScoreArgs, ScoreState } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";

@@ -1,10 +1,15 @@
 "use client";
+export const dynamic = "auto";
+export const dynamicParams = true;
+export const revalidate = false;
+export const fetchCache = "auto";
+export const runtime = "edge";
+export const preferredRegion = "auto";
 import { Query, ScoreState } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { Chip, Divider, Grid, Paper, Stack, Typography } from "@mui/material";
 import { useParams } from "next/navigation";
 import React from "react";
-
 
 const FetchQuery = gql`
 	query ($id: Int!) {

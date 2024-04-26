@@ -225,7 +225,7 @@ export default function Timer(props: TimerProps) {
 					<TimerControlButton disabled={buttonDisableState.settings} onClick={onSettingButtonClick}>Settings</TimerControlButton>
 				</Grid>
 				{props.onAssign ?
-					<TimerControlButton onClick={() => props.onAssign(displayTime ?? 0)} sx={{ height: 75, my: 1 }} variant="contained">Assign</TimerControlButton>
+					<TimerControlButton onClick={() => props.onAssign?.(displayTime ?? 0)} sx={{ height: 75, my: 1 }} variant="contained">Assign</TimerControlButton>
 					: <></>}
 				<Divider sx={{my:2}} />
 				<List component="nav" aria-label="main mailbox folders">

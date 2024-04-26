@@ -1,6 +1,7 @@
 
 //FROM https://codesandbox.io/p/sandbox/react-easy-crop-demo-with-cropped-output-q8q1mnr01w?file=%2Fsrc%2FcropImage.js%3A1%2C1-102%2C1
-
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-nocheck
 
 export const createImage = (url) =>
 	new Promise((resolve, reject) => {
