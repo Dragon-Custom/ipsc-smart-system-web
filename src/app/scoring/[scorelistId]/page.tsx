@@ -1,4 +1,11 @@
 "use client";
+export const dynamic = "auto";
+export const dynamicParams = true;
+export const revalidate = false;
+export const fetchCache = "auto";
+export const runtime = "edge";
+export const preferredRegion = "auto";
+
 import {
 	Mutation,
 	MutationSwapIdArgs,
@@ -46,6 +53,7 @@ const FetchQuery = gql`
             createAt
             id
             scores {
+				accuracy
                 alphas
                 charlies
                 deltas
@@ -116,7 +124,8 @@ interface ScoreItem {
     Precentage: number;
     Id: number;
     State: string;
-    Round?: number;
+	Round?: number;
+	Accuracy: number;
 }
 
 export default function ScorelistPage() {
@@ -199,10 +208,11 @@ export default function ScorelistPage() {
 				Popper: v.poppers ?? 0,
 				ProErrors: v.proErrorCount,
 				Time: v.time,
-				HitFactor: parseFloat(v.hitFactor).toFixed(2),
+				HitFactor: parseFloat(v.hitFactor as unknown as string).toFixed(2),
 				Precentage: selectedRound == 0 ? v.scorelistOverallPrecentage : v.roundPrecentage,
 				State: v.state,
 				Round: selectedRound == 0 ? v.round : undefined,
+				Accuracy: v.accuracy as number,
 			});
 		});
 		setRowData([...Rows.toSorted((a, b) => a.Id - b.Id)]);
@@ -261,6 +271,7 @@ export default function ScorelistPage() {
 		{ field: "HitFactor"},
 		{ field: "Precentage", valueFormatter: (v) => `${v.value.toFixed(1)}%`},
 		{ field: "State", hide: true },
+		{ field: "Accuracy", valueFormatter: (v) => `${v.value.toFixed(1)}%`},
 	]);
 
 	const autoSizeStrategy = {

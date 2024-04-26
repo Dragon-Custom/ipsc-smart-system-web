@@ -14,6 +14,7 @@ export interface ShooterCardProps {
 	division: Division;
 	showMutationButton?: boolean;
 	email: string;
+	onClick?: (id: number) => void;
 }
 
 
@@ -77,7 +78,7 @@ export default function ShooterCard(props: ShooterCardProps) {
 					}
 					disablePadding
 				>
-					<ListItemButton sx={{px: 2}}>
+					<ListItemButton sx={{px: 2}} onClick={() => props?.onClick?.(props.id)}>
 						<ListItemAvatar>
 							<Typography variant="caption">ID: {props.id}</Typography>
 						</ListItemAvatar>

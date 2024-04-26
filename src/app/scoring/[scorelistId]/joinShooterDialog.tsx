@@ -1,4 +1,11 @@
 "use client";
+export const dynamic = "auto";
+export const dynamicParams = true;
+export const revalidate = false;
+export const fetchCache = "auto";
+export const runtime = "edge";
+export const preferredRegion = "auto";
+
 import { Mutation, MutationCopyShootersFromRoundToRoundArgs, MutationCreateOneScoreArgs, Query } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { Button, Checkbox, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select } from "@mui/material";

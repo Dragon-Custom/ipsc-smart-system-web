@@ -7,6 +7,7 @@ import ShooterCard from "./shooterCard";
 import { Box, Divider, List, SpeedDial, SpeedDialAction, SpeedDialIcon, Typography } from "@mui/material";
 import { Add } from "@mui/icons-material";
 import ShooterFormDialog from "./shooterFormDialog";
+import { useRouter } from "next/navigation";
 
 const FindManyShooterQuery = gql`
 	query FindManyShooter{
@@ -35,6 +36,7 @@ export default function Shooters() {
 		},
 		shouldResubscribe: false,
 	});
+	const router = useRouter();
 
 	const [createShooterFormOpen, setCreateShooterFormOpen] = React.useState(false);
 
@@ -44,6 +46,10 @@ export default function Shooters() {
 
 	function closeCreateShooterForm() {
 		setCreateShooterFormOpen(false);
+	}
+
+	function onShooterCardClick(id: number) {
+		router.push(`shooters/${id}`);
 	}
 
 	return (
@@ -57,6 +63,7 @@ export default function Shooters() {
 							createDate={new Date(v.createAt).toLocaleDateString() + " " + new Date(v.createAt).toLocaleTimeString()}
 							showMutationButton
 							{...v}
+							onClick={onShooterCardClick}
 						/>
 						<Divider sx={{ my: .5}} />
 					</Box>
