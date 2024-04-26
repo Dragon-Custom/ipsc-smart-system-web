@@ -264,7 +264,7 @@ export default function ScorelistPage() {
 		{ field: "HitFactor"},
 		{ field: "Precentage", valueFormatter: (v) => `${v.value.toFixed(1)}%`},
 		{ field: "State", hide: true },
-		{ field: "Accuracy" },
+		{ field: "Accuracy", valueFormatter: (v) => `${v.value.toFixed(1)}%`},
 	]);
 
 	const autoSizeStrategy = {
