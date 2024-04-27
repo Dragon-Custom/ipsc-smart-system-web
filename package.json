@@ -8,7 +8,8 @@
         "lint": "next lint",
         "ssl": "local-ssl-proxy --source 3001 --target 3000",
         "gql:sdk": "graphql-codegen",
-        "build": "npm run gql:sdk && next build"
+        "build": "npm run gql:sdk && next build",
+        "fuck_the_cloudflare_error": "git submodule update --force --recursive --init --remote"
     },
     "dependencies": {
         "@ag-grid-community/core": "^31.2.1",
@@ -27,7 +28,7 @@
         "graphql-sse": "^2.5.3",
         "material-ui-confirm": "^3.0.11",
         "mui-color-input": "^2.0.3",
-        "mui-loading": "^1.0.5",
+        "mui-loading": "^1.0.6",
         "next": "14.1.3",
         "react": "^18",
         "react-dom": "^18",

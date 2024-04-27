@@ -300,7 +300,6 @@ export default function ScorePage() {
 		});
 		return count;
 	}, [paperData]);
-
 	const [dqDialogOpen, toggleDqDialogOpen] = useToggle(false);
 	const [selectedDqCategory, setSelectedDqCategory] = React.useState("");
 	const [selectedDqReason, setSelectedDqReason] = React.useState(0);
@@ -477,9 +476,15 @@ export default function ScorePage() {
 									value={selectedDqCategory}
 									onChange={(v) => setSelectedDqCategory(v.target.value)}
 								>
-									{Object.keys(Object.groupBy(query.data?.findManyDqObjects, ({ category }) => category)).map(v => {
-										return <MenuItem key={v} value={v} >{v}</MenuItem>;
-									})}
+									{(() => {
+										try {
+											Object.keys(Object.groupBy(query.data?.findManyDqObjects ?? [], ({ category }) => category)).map(v => {
+												return <MenuItem key={v} value={v} >{v}</MenuItem>;
+											});
+										} catch(e) {
+											return <></>;
+										}
+									})()}
 								</Select>
 							</FormControl>
 							<FormControl>
@@ -526,7 +531,7 @@ export default function ScorePage() {
 			<Container maxWidth="sm" sx={{height:"100%"}}>
 				<Paper
 					elevation={2}
-					sx={{ height: "100%", py:2}}
+					sx={{ py:2 , height: "max-content"}}
 					component= 'form'
 					onSubmit={(event: React.FormEvent<HTMLFormElement>) => {
 						event.preventDefault();
@@ -603,7 +608,7 @@ export default function ScorePage() {
 								textAlign: "center",
 							};
 						}}>
-							{paperCount.a}A {paperCount.c}C {paperCount.d}D {popper}PP {paperCount.m}M {paperCount.ns}NS {proErrosCount}PE {time}s {hitFactor.toFixed(2)}HF
+							{paperCount.a}A {paperCount.c}C {paperCount.d}D {popper}PP {paperCount.m}M {paperCount.ns}NS {proErrosCount}PE {time.toFixed(2)}s {hitFactor.toFixed(2)}HF
 						</Typography>
 					</Stack>
 				</Paper>

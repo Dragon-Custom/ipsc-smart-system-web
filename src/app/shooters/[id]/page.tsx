@@ -114,9 +114,10 @@ export default function ShooterStatisticPage() {
 							<Typography variant="caption" color={"InactiveCaptionText"}>Rating represented the shooter performance</Typography>
 							<Typography variant="overline" fontSize={"10px"} color={"GrayText"}>Rating = (avg_acc)*(avg_hitfactor)+(sum_score/sum_time)</Typography>
 							<Divider><Chip label="Average" /></Divider>
-							<Typography variant="subtitle1">Average Hit Factor: {data.aggregateScore?._avg?.hitFactor?.toFixed(2)}</Typography>
-							<Typography variant="subtitle1">Average Accuracy: {`${data.aggregateScore?._avg?.accuracy?.toFixed(2)}%`}</Typography>
-							<Typography variant="subtitle1">Average Ranking: #2</Typography>
+							<Typography variant="subtitle1">Average Hit Factor: {(data.aggregateScore?._avg?.hitFactor ?? 0).toFixed(2)}</Typography>
+							<Typography variant="subtitle1">Average Accuracy: {`${((data.aggregateScore?._avg?.accuracy ?? 0)).toFixed(2)}%`}</Typography>
+							{/* TODO: avg rank impl */}
+							{/* <Typography variant="subtitle1">Average Ranking: #2</Typography> */}
 							<Divider><Chip label="Overall" /></Divider>
 							<Typography variant="subtitle1">Run Count: {runCount}</Typography>
 							<Typography variant="subtitle1">Finished Count: {finishedCount}</Typography>
