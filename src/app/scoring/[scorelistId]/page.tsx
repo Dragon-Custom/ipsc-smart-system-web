@@ -359,7 +359,7 @@ export default function ScorelistPage() {
 			direction="column"
 			justifyContent="center"
 			alignItems="stretch"
-			height={"801%"}
+			height={"100%"}
 		>
 			<Box sx={{ p: 2 }}>
 				<Typography variant="h4">{`${new Date(
