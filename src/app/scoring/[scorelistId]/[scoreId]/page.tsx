@@ -531,7 +531,7 @@ export default function ScorePage() {
 			<Container maxWidth="sm" sx={{height:"100%"}}>
 				<Paper
 					elevation={2}
-					sx={{ height: "100%", py:2}}
+					sx={{ py:2 , height: "max-content"}}
 					component= 'form'
 					onSubmit={(event: React.FormEvent<HTMLFormElement>) => {
 						event.preventDefault();
