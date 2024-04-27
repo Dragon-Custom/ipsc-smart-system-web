@@ -300,7 +300,6 @@ export default function ScorePage() {
 		});
 		return count;
 	}, [paperData]);
-
 	const [dqDialogOpen, toggleDqDialogOpen] = useToggle(false);
 	const [selectedDqCategory, setSelectedDqCategory] = React.useState("");
 	const [selectedDqReason, setSelectedDqReason] = React.useState(0);
@@ -477,9 +476,15 @@ export default function ScorePage() {
 									value={selectedDqCategory}
 									onChange={(v) => setSelectedDqCategory(v.target.value)}
 								>
-									{Object.keys(Object.groupBy(query.data?.findManyDqObjects, ({ category }) => category)).map(v => {
-										return <MenuItem key={v} value={v} >{v}</MenuItem>;
-									})}
+									{(() => {
+										try {
+											Object.keys(Object.groupBy(query.data?.findManyDqObjects ?? [], ({ category }) => category)).map(v => {
+												return <MenuItem key={v} value={v} >{v}</MenuItem>;
+											});
+										} catch(e) {
+											return <></>;
+										}
+									})()}
 								</Select>
 							</FormControl>
 							<FormControl>
