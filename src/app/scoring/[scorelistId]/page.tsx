@@ -208,7 +208,7 @@ export default function ScorelistPage() {
 				Popper: v.poppers ?? 0,
 				ProErrors: v.proErrorCount,
 				Time: v.time,
-				HitFactor: parseFloat(v.hitFactor as unknown as string).toFixed(2),
+				HitFactor: parseFloat(v.hitFactor as unknown as string).toFixed(3),
 				Precentage: selectedRound == 0 ? v.scorelistOverallPrecentage : v.roundPrecentage,
 				State: v.state,
 				Round: selectedRound == 0 ? v.round : undefined,
@@ -346,7 +346,7 @@ export default function ScorelistPage() {
 		}
 	}
 
-	const mobileBreakpoint = useMediaQuery(theme.breakpoints.up("md"));
+	const mobileBreakpoint = useMediaQuery(theme.breakpoints.up(500));
 
 	// #region error handling
 	if (query.error) return <>ERROR: {JSON.stringify(query.error)}</>;
@@ -355,13 +355,21 @@ export default function ScorelistPage() {
 	const data = query.data.findUniqueScorelist;
 	// #endregion
 	return (
-		<>
+		<Stack
+			direction="column"
+			justifyContent="center"
+			alignItems="stretch"
+			height={"801%"}
+		>
 			<Box sx={{ p: 2 }}>
 				<Typography variant="h4">{`${new Date(
 					data.stage?.createAt,
 				).toLocaleDateString()} ${data.stage?.name}`}</Typography>
 			</Box>
-			<Paper elevation={10} sx={{ mt: 2 }}>
+			<Paper elevation={10} sx={{
+				mt: 2,
+				height: "100%",
+			}}>
 				<Tabs
 					variant="scrollable"
 					value={selectedRound}
@@ -382,25 +390,27 @@ export default function ScorelistPage() {
 						return tabList;
 					})()}
 				</Tabs>
+				<Stack direction={mobileBreakpoint ? "row" : "column"} justifyContent={"space-between"} gap={2}>
+					<Stack direction={"row"} gap={2}>
+						<Button onClick={() => autoSizeAll(false)}>
+								Resize the grid
+						</Button>
+						<FormControlLabel value={enableOrdering} onChange={() => toggleOrdering()} control={<Switch />} label="Enable ordering" />
+					</Stack>
+					<Stack direction={mobileBreakpoint ? "row" : "row-reverse"} gap={2}>
+						<ButtonGroup variant="text">
+							<Button onClick={randomizeOrder}>
+								Reshuffle
+							</Button>
+						</ButtonGroup>
+					</Stack>
+				</Stack>
 				<div
 					className="ag-theme-alpine-dark" // applying the grid theme
-					style={{ height: 500 }} // the grid will fill the size of the parent container
+					style={{
+						height: "100%",
+					}} // the grid will fill the size of the parent container
 				>
-					<Stack direction={mobileBreakpoint ? "row" : "column"} justifyContent={"space-between"} gap={2}>
-						<Stack direction={"row"} gap={2}>
-							<Button onClick={() => autoSizeAll(false)}>
-								Resize the grid
-							</Button>
-							<FormControlLabel value={enableOrdering} onChange={() => toggleOrdering()} control={<Switch />} label="Enable ordering" />
-						</Stack>
-						<Stack direction={mobileBreakpoint ? "row" : "row-reverse"} gap={2}>
-							<ButtonGroup variant="text">
-								<Button onClick={randomizeOrder}>
-								Reshuffle
-								</Button>
-							</ButtonGroup>
-						</Stack>
-					</Stack>
 					{/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
 					{/* @ts-ignore */}
 					<AgGridReact
@@ -417,7 +427,6 @@ export default function ScorelistPage() {
 					/>
 				</div>
 			</Paper>
-
 			<SpeedDial
 				ariaLabel="Scorelist operation"
 				sx={{ position: "fixed", bottom: 20, right: 20 }}
@@ -444,6 +453,6 @@ export default function ScorelistPage() {
 				round={selectedRound}
 				selectedRound={selectedRound}
 			/>
-		</>
+		</Stack>
 	);
 }
