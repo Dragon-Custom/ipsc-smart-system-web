@@ -608,7 +608,7 @@ export default function ScorePage() {
 								textAlign: "center",
 							};
 						}}>
-							{paperCount.a}A {paperCount.c}C {paperCount.d}D {popper}PP {paperCount.m}M {paperCount.ns}NS {proErrosCount}PE {time}s {hitFactor.toFixed(2)}HF
+							{paperCount.a}A {paperCount.c}C {paperCount.d}D {popper}PP {paperCount.m}M {paperCount.ns}NS {proErrosCount}PE {time.toFixed(2)}s {hitFactor.toFixed(2)}HF
 						</Typography>
 					</Stack>
 				</Paper>
