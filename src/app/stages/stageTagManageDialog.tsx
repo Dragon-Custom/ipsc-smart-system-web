@@ -1,4 +1,4 @@
-import { Mutation, MutationDeleteOneStageTagArgs, Query } from "@/gql/graphql";
+import { Mutation, MutationDeleteStageTagArgs, Query } from "@/gql/graphql";
 import { gql, useMutation, useQuery, useSubscription } from "@apollo/client";
 import { Delete, Edit } from "@mui/icons-material";
 import { Button, Chip, Dialog, DialogContent, DialogTitle, IconButton, ListItemButton, ListItemText, Stack } from "@mui/material";
@@ -7,9 +7,9 @@ import React from "react";
 import StageTagFormDialog, { StageTagFormDialogProps } from "./stageTagFormDialog";
 
 
-const FindManyStageTagsQuery = gql`
+const DataQuery = gql`
 	query {
-		findManyStageTag {
+		stageTags {
 			color
 			id
 			title
@@ -24,10 +24,8 @@ const SubscriptStageTagsChangeSubscription = gql`
 `;
 
 const DeleteOneStageTagMutation = gql`
-	mutation($where: StageTagWhereUniqueInput!) {
-		deleteOneStageTag(where: $where) {
-			id
-		}
+	mutation DeleteStageTag($id: Int!) {
+		deleteStageTag(id: $id)
 	}
 `;
 
@@ -37,13 +35,13 @@ export interface StageTagManageDialogProps {
 	open: boolean;
 }
 export default function StageTagManageDialog(props: StageTagManageDialogProps) {
-	const tags = useQuery<Query>(FindManyStageTagsQuery);
+	const tags = useQuery<Query>(DataQuery);
 	useSubscription(SubscriptStageTagsChangeSubscription, {
 		onData() {
 			tags.refetch();
 		},
 	});
-	const [ deleteTag ] = useMutation<Mutation["deleteOneStageTag"], MutationDeleteOneStageTagArgs>(DeleteOneStageTagMutation);
+	const [ deleteTag ] = useMutation<Mutation["deleteStageTag"], MutationDeleteStageTagArgs>(DeleteOneStageTagMutation);
 	const muiConfirm = useConfirm();
 
 	function onDeleteTagClick(tagId: number) {
@@ -54,9 +52,7 @@ export default function StageTagManageDialog(props: StageTagManageDialogProps) {
 			.then(() => {
 				deleteTag({
 					variables: {
-						where: {
-							id: tagId,
-						},
+						id: tagId,
 					},
 				});
 			}).catch();
@@ -71,7 +67,7 @@ export default function StageTagManageDialog(props: StageTagManageDialogProps) {
 	}
 	const [editTag, setEditTag] = React.useState<StageTagFormDialogProps["editTag"] | undefined>();
 	function onEditButtonClick(tagId: number) {
-		const tagData = tags.data?.findManyStageTag.find(v => tagId == v.id);
+		const tagData = tags.data?.stageTags?.find(v => tagId == v?.id);
 		if (!tagData)
 			return;
 		setEditTag({
@@ -99,7 +95,9 @@ export default function StageTagManageDialog(props: StageTagManageDialogProps) {
 				{tags.data ? 
 					<DialogContent>
 						<Stack>
-							{tags.data.findManyStageTag.map(v => {
+							{tags.data.stageTags?.map(v => {
+								if (!v)
+									return <></>;
 								return (
 									<ListItemButton key={v.id}>
 										<ListItemText>
