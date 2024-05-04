@@ -1,5 +1,5 @@
 import ImageCropper from "@/components/ImageCropper";
-import { Mutation, MutationCreateOneStageArgs, MutationDeleteManyTagOnStageArgs, MutationUpdateOneStageArgs, Query } from "@/gql/graphql";
+import { Mutation, MutationCreateStageArgs, MutationUpdateStageArgs, Query } from "@/gql/graphql";
 import useGraphqlImage from "@/hooks/useGraphqlImage";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { FileUpload } from "@mui/icons-material";
@@ -29,45 +29,32 @@ const VisuallyHiddenInput = styled("input")({
 });
 
 
-const FindManyShooterQuery = gql`
-	query {
-		findManyShooter {
+const DataQuery = gql`
+	query  {
+		stageTags {
+			id
+			title
+			color
+		}
+		shooters {
 			id
 			name
 		}
 	}
 `;
-
-const CreateOneStageMutation = gql`
-	mutation($data: StageCreateInput!){
-		createOneStage(data: $data) {
+const CreateStageMutation = gql`
+	mutation CreateStage($stage: CreateStageInput!) {
+		createStage(stage: $stage) {
 			id
 		}
 	}
 `;
-const UpdateOneStageMutation = gql`
-	mutation($where: StageWhereUniqueInput!, $data: StageUpdateInput!){
-		updateOneStage(where: $where,data: $data) {
+const UpdateStageMutation = gql`
+	mutation UpdateStage($id: Int!, $stage: UpdateStageInput!) {
+		updateStage(id: $id, stage: $stage) {
 			id
 		}
 	}
-`;
-const FindManyStageTagsQuery = gql`
-	query {
-		findManyStageTag {
-			color
-			id
-			title
-		}
-	}
-`;
-const DeleteManyTagOnStageMutation = gql`
-	mutation($where: TagOnStageWhereInput!) {
-		deleteManyTagOnStage(where: $where) {
-			count
-		}
-	}
-
 `;
 
 export interface StageFormData {
@@ -100,7 +87,7 @@ async function uploadImage(base64url: string): Promise<ImageID> {
 		redirect: "follow",
 	};
 
-	const response = await (await fetch("https://dragoncustom.onflashdrive.app:2087/graphql", requestOptions as RequestInit)).json();
+	const response = await (await fetch(location.origin + "/api/graphql", requestOptions as RequestInit)).json();
 	return response.data.uploadImage;
 }
 export interface StageFormDialogProps {
@@ -122,11 +109,9 @@ export interface StageFormDialogProps {
 	}
 }
 export default function StageFormDialog(props: StageFormDialogProps) {
-	const tags = useQuery<Query>(FindManyStageTagsQuery);
-	const allShooter = useQuery<Query>(FindManyShooterQuery);
-	const [createStage] = useMutation<Mutation["createOneStage"], MutationCreateOneStageArgs>(CreateOneStageMutation);
-	const [updateStage] = useMutation<Mutation["updateOneStage"], MutationUpdateOneStageArgs>(UpdateOneStageMutation);
-	const [deleteTagOnStage] = useMutation<Mutation["deleteManyTagOnStage"], MutationDeleteManyTagOnStageArgs>(DeleteManyTagOnStageMutation);
+	const query = useQuery<Query>(DataQuery);
+	const [createStage] = useMutation<Mutation["createStage"], MutationCreateStageArgs>(CreateStageMutation);
+	const [updateStage] = useMutation<Mutation["updateStage"], MutationUpdateStageArgs>(UpdateStageMutation);
 	const [stageAttr, setStageAttr] = React.useState({
 		minRounds: 0,
 		maxScore: 0,
@@ -136,13 +121,13 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 	const [stageImage, setStageImage] = React.useState("");
 	const [selectedTag, setSelectedTag] = React.useState<number[]>(props.editStage?.tags ?? []);
 	const [loading, setLoading] = React.useState(false);
-	let edit_image: string;
+	let editImage: string;
 	if (props.editStage)
-		edit_image = useGraphqlImage(props.editStage.imageId);
+		editImage = useGraphqlImage(props.editStage.imageId);
 
 	React.useEffect(() => {
-		allShooter.refetch();
-		setStageImage(edit_image ?? "");
+		query.refetch();
+		setStageImage(editImage ?? "");
 	}, [props]);
 
 	async function onCreateStageFormSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -161,102 +146,43 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 		const designer = parseInt(formData.designer);
 		const walkthroughTime = parseInt(formData.walkthroughTime);
 		
-		let img_id = props.editStage?.imageId ?? "";
-		if (edit_image !== stageImage) {
-			img_id = await uploadImage(stageImage);
-		}
-		
-		let tags = {};
-		if (formData.tags !== "") {
-			const tagIds: number[] = JSON.parse(`[${formData.tags}]`);
-			tags = {
-				tags: {
-					create: tagIds.map(v =>{
-						return {
-							tag: {
-								connect: {
-									id: v,
-								},
-							},
-						};
-					}),
-				},
-			};
+		let imgId = props.editStage?.imageId ?? "";
+		if (editImage !== stageImage) {
+			imgId = await uploadImage(stageImage);
 		}
 
 		if (props.editStage) {
-			await deleteTagOnStage({
-				variables: {
-					where: {
-						stageId: {
-							equals: props.editStage.id,
-						},
-					},
-				},
-			});
 			await updateStage({
 				variables: {
-					data: {
-						image: {
-							connect: {
-								id: img_id,
-							},
-						},
-						name: {
-							set: formData.name,
-						},
-						description: {
-							set: formData.description,
-						},
-						papers: {
-							set: papers,
-						},
-						poppers: {
-							set: poppers,
-						},
-						noshoots: {
-							set: noshoots,
-						},
-						gunCondition: {
-							set: gunCondition,
-						},
-						designer: {
-							connect: {
-								id: designer,
-							},
-						},
-						walkthroughTime: {
-							set: walkthroughTime,
-						},
-						...tags,
-					},
-					where: {
-						id: props.editStage.id,
-					},
-				},
-			});
-		} else {
-			await createStage({
-				variables: {
-					data: {
-						image: {
-							connect: {
-								id: img_id,
-							},
-						},
+					id: props.editStage.id,
+					stage: {
 						name: formData.name,
 						description: formData.description,
 						papers,
 						poppers,
 						noshoots,
 						gunCondition,
-						designer: {
-							connect: {
-								id: designer,
-							},
-						},
+						designerId: designer,
 						walkthroughTime,
-						...tags,
+						imageId: imgId,
+						tagsId: selectedTag,
+					},
+				},
+			});
+		} else {
+			await createStage({
+				variables: {
+					stage: {
+						name: formData.name,
+						description: formData.description,
+						papers,
+						poppers,
+						noshoots,
+						gunCondition,
+						designerId: designer,
+						walkthroughTime,
+						imageId: imgId,
+						tagsId: selectedTag,
 					},
 				},
 			});
@@ -271,19 +197,19 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 		const papers = parseInt(formData.papers);
 		const poppers = parseInt(formData.poppers);
 		const minRounds = papers * 2 + poppers;
-		let stage_type: string;
+		let stageType: string;
 		if (minRounds <= 12) 
-			stage_type = "Short";
+			stageType = "Short";
 		else if (minRounds <= 24)
-			stage_type = "Medium";
+			stageType = "Medium";
 		else if (minRounds <= 32)
-			stage_type = "Long";
+			stageType = "Long";
 		else
-			stage_type = "Unsanctioned";
+			stageType = "Unsanctioned";
 		setStageAttr({
 			minRounds,
 			maxScore: papers * 2 * 5 + poppers * 5,
-			stageType: stage_type,
+			stageType: stageType,
 		});
 	}
 
@@ -376,9 +302,11 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 								label="Designer"
 								defaultValue={props.editStage?.designerId ?? 1}
 							>
-								{!allShooter.data ?
+								{!query.data?.shooters ?
 									<MenuItem value={1}>Loading shooter list...</MenuItem> :
-									allShooter.data?.findManyShooter.map((v) =>
+									query.data?.shooters?.map((v) =>
+										// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+										//@ts-expect-error
 										<MenuItem value={v.id} key={v.id}>{v.name}</MenuItem>,
 									)
 								}
@@ -467,7 +395,7 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 								renderValue={(selected) => (
 									<Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
 										{selected.map(v => {
-											const tagData = tags.data?.findManyStageTag.find(e => e.id == v);
+											const tagData = query.data?.stageTags?.find(e => e?.id == v);
 											if (!tagData)
 												return <></>;
 											return <Chip
@@ -481,16 +409,20 @@ export default function StageFormDialog(props: StageFormDialogProps) {
 									</Box>
 								)}
 							>
-								{tags.data?.findManyStageTag.map(v =>
-									<MenuItem value={v.id} key={v.id} >
-										<Checkbox checked={selectedTag.indexOf(v.id) > -1} />
-										<Chip
-											label={v.title}
-											variant="outlined"
-											sx={{ backgroundColor: v.color}}
-										/>
-									</MenuItem>,
-								)}
+								{query.data?.stageTags?.map(v => {
+									if (!v)
+										return <></>;
+									return (
+										<MenuItem value={v.id} key={v.id} >
+											<Checkbox checked={selectedTag.indexOf(v.id) > -1} />
+											<Chip
+												label={v.title}
+												variant="outlined"
+												sx={{ backgroundColor: v.color}}
+											/>
+										</MenuItem>
+									);
+								})}
 							</Select>
 						</FormControl>
 						<Grid container borderRadius={1}>

@@ -1,5 +1,5 @@
 "use client";
-import { Mutation, Query, QueryFindUniqueStageArgs } from "@/gql/graphql";
+import { Mutation, Query, QueryStageArgs } from "@/gql/graphql";
 import useGraphqlImage from "@/hooks/useGraphqlImage";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, Typography } from "@mui/material";
@@ -7,39 +7,42 @@ import { useConfirm } from "material-ui-confirm";
 import React from "react";
 import StageFormDialog from "./stageFormDialog";
 
-const FindUniqueStage = gql`
-    query ($where: StageWhereUniqueInput!){
-        findUniqueStage(where: $where) {
-            id
-			name
+const StageQuery = gql`
+    query ($id: Int!){
+        stage(id: $id) {
+			id
 			createAt
+			name
+			description
+			papers
 			poppers
 			noshoots
-			papers
-			imageId
+			gunCondition
+			designerId
+			walkthroughTime
+			minRounds
+			maxScore
+			stageType
 			designer {
 				id
 				name
 			}
-			maxScore
-			minRounds
-			stageType
-			description
-			walkthroughTime
-			gunCondition
 			tags {
 				tag {
-                    color
-                    id
-                    title
-                }
+					id
+					title
+					color
+				}
 			}
-        }
+			image {
+				id
+			}
+		}
     }
 `;
 const DeleteStageMutation = gql`
-    mutation($where: StageWhereUniqueInput!) {
-		deleteOneStage(where: $where){
+    mutation($id: Int!) {
+		deleteStage(id: $id) {
 			id
 		}
 	}
@@ -60,20 +63,18 @@ export default function StageDetialsDialog(props: StageDetialsDialogProps) {
 	}
 
 
-	const stage = useQuery<Query, QueryFindUniqueStageArgs>(FindUniqueStage, {
+	const query = useQuery<Query, QueryStageArgs>(StageQuery, {
 		variables: {
-			where: {
-				id: props.stageId,
-			},
+			id: props.stageId,
 		},
 	});
-	const image = useGraphqlImage(stage.data?.findUniqueStage?.imageId ?? "");
+	const image = useGraphqlImage(query.data?.stage?.image.id ?? "");
 	const confirm = useConfirm();
 	const [ deleteStage ] = useMutation<Mutation>(DeleteStageMutation);
 
 	function onDeleteButtonClick() {
 		confirm({
-			title: `Are you sure you want to delete the stage ${stage.data?.findUniqueStage?.name} ?`,
+			title: `Are you sure you want to delete the stage ${query.data?.stage?.name} ?`,
 			confirmationText: "Delete",
 			confirmationButtonProps: {
 				color: "error",
@@ -82,15 +83,13 @@ export default function StageDetialsDialog(props: StageDetialsDialogProps) {
 			.then(() => {
 				deleteStage({
 					variables: {
-						where: {
-							id: props.stageId,
-						},
+						id: props.stageId,
 					},
 				});
 			})
 			.catch();
 	}
-	if (!stage.data?.findUniqueStage) {
+	if (!query.data?.stage) {
 		return <>Loading...</>;
 	}
 
@@ -101,16 +100,16 @@ export default function StageDetialsDialog(props: StageDetialsDialogProps) {
 				onClose={onEditDialogClose}
 				editStage={{
 					id: props.stageId,
-					description: stage.data.findUniqueStage.description ?? undefined,
-					designerId: stage.data.findUniqueStage.designer.id,
-					gunCondition: stage.data.findUniqueStage.gunCondition,
-					imageId: stage.data.findUniqueStage.imageId,
-					name: stage.data.findUniqueStage.name,
-					noshoots: stage.data.findUniqueStage.noshoots,
-					papers: stage.data.findUniqueStage.papers,
-					poppers: stage.data.findUniqueStage.poppers,
-					walkthroughTime: stage.data.findUniqueStage.walkthroughTime,
-					tags: stage.data.findUniqueStage.tags ? stage.data.findUniqueStage.tags.map(v=>v.tag.id) : [],
+					description: query.data.stage.description ?? undefined,
+					designerId: query.data.stage.designer.id,
+					gunCondition: query.data.stage.gunCondition,
+					imageId: query.data.stage.image.id,
+					name: query.data.stage.name,
+					noshoots: query.data.stage.noshoots,
+					papers: query.data.stage.papers,
+					poppers: query.data.stage.poppers,
+					walkthroughTime: query.data.stage.walkthroughTime,
+					tags: query.data.stage.tags ? query.data.stage.tags.map(v=> v?.tag?.id ?? 0) : [],
 				}}
 			/>
 			<Dialog
@@ -119,26 +118,26 @@ export default function StageDetialsDialog(props: StageDetialsDialogProps) {
 				onClose={props.onClose}
 				open={props.open}
 			>
-				{!stage.data?.findUniqueStage ? <>Loading...</> :
+				{!query.data?.stage ? <>Loading...</> :
 					<>
-						<DialogTitle>{stage.data?.findUniqueStage.name}</DialogTitle>
+						<DialogTitle>{query.data?.stage.name}</DialogTitle>
 						<DialogContent>
 							<img src={image} width={"100%"}/>
-							<Typography variant="h3">{stage.data?.findUniqueStage.name}</Typography>
-							<Typography variant="h6">Designed by: {stage.data?.findUniqueStage.designer.name}</Typography>
+							<Typography variant="h3">{query.data?.stage.name}</Typography>
+							<Typography variant="h6">Designed by: {query.data?.stage.designer.name}</Typography>
 							<Divider />
-							<Typography variant="overline">{stage.data?.findUniqueStage.description}</Typography>
-							<Typography variant="body2">create at:{new Date(stage.data?.findUniqueStage.createAt).toLocaleDateString()}</Typography>
-							<Typography variant="body2">Condition {stage.data?.findUniqueStage.gunCondition}</Typography>
+							<Typography variant="overline">{query.data?.stage.description}</Typography>
+							<Typography variant="body2">create at:{new Date(query.data?.stage.createAt).toLocaleDateString()}</Typography>
+							<Typography variant="body2">Condition {query.data?.stage.gunCondition}</Typography>
 							<Divider />
-							<Typography variant="body2">Papers: {stage.data?.findUniqueStage.papers}</Typography>
-							<Typography variant="body2">No-shoots: {stage.data?.findUniqueStage.noshoots}</Typography>
-							<Typography variant="body2">Popper: {stage.data?.findUniqueStage.poppers}</Typography>
+							<Typography variant="body2">Papers: {query.data?.stage.papers}</Typography>
+							<Typography variant="body2">No-shoots: {query.data?.stage.noshoots}</Typography>
+							<Typography variant="body2">Popper: {query.data?.stage.poppers}</Typography>
 							<Divider />
-							<Typography variant="body2">Max score: {stage.data?.findUniqueStage.maxScore}</Typography>
-							<Typography variant="body2">Min rounds: {stage.data?.findUniqueStage.minRounds}</Typography>
-							<Typography variant="body2">Stage type: {stage.data?.findUniqueStage.stageType}</Typography>
-							<Typography variant="body2">Walkthrough time: {stage.data?.findUniqueStage.walkthroughTime} minutes</Typography>
+							<Typography variant="body2">Max score: {query.data?.stage.maxScore}</Typography>
+							<Typography variant="body2">Min rounds: {query.data?.stage.minRounds}</Typography>
+							<Typography variant="body2">Stage type: {query.data?.stage.stageType}</Typography>
+							<Typography variant="body2">Walkthrough time: {query.data?.stage.walkthroughTime} minutes</Typography>
 						</DialogContent>
 					</>
 				}
