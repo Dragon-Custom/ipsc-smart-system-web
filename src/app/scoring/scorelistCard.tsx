@@ -1,4 +1,4 @@
-import { Mutation, MutationDeleteOneScorelistArgs } from "@/gql/graphql";
+import { Mutation, MutationDeleteScorelistArgs } from "@/gql/graphql";
 import useGraphqlImage from "@/hooks/useGraphqlImage";
 import { gql, useMutation } from "@apollo/client";
 import { Delete } from "@mui/icons-material";
@@ -9,8 +9,8 @@ import React from "react";
 
 
 const DeleteScorelistMutation = gql`
-	mutation($where: ScorelistWhereUniqueInput!){
-		deleteOneScorelist(where: $where) {
+	mutation($id: Int!){
+		deleteScorelist(id: $id) {
 			id
 		}
 	}
@@ -25,7 +25,7 @@ export interface ScorelistCardProps {
 
 export default function ScorelistCard(props: ScorelistCardProps) {
 	const stageImage = useGraphqlImage(props.imageId);
-	const [deleteScorelist] = useMutation<Mutation["deleteOneScorelist"], MutationDeleteOneScorelistArgs>(DeleteScorelistMutation);
+	const [ deleteScorelist ] = useMutation<Mutation["deleteScorelist"], MutationDeleteScorelistArgs>(DeleteScorelistMutation);
 	const confirm = useConfirm();
 	const router = useRouter();
 
@@ -41,9 +41,7 @@ export default function ScorelistCard(props: ScorelistCardProps) {
 			.then(() => {
 				deleteScorelist({
 					variables: {
-						where: {
-							id: props.scorelistId,
-						},
+						id: props.scorelistId,
 					},
 				});
 			})
