@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, TextField } from "@mui/material";
-import { Division, Mutation, MutationCreateOneShooterArgs, MutationUpdateOneShooterArgs } from "@/gql/graphql";
+import { Division, Mutation, MutationCreateShooterArgs, MutationUpdateShooterArgs } from "@/gql/graphql";
 import { gql, useMutation } from "@apollo/client";
 
 
@@ -14,16 +14,16 @@ for (const key in Division) {
 }
 
 const CreateOneShooterMutation = gql`
-	mutation CreateOneShooter($data: ShooterCreateInput!) {
-		createOneShooter(data: $data) {
+	mutation($shooter: CreateShooterShooterInput!) {
+		createShooter(shooter: $shooter) {
 			id
 		}
 	}
 `;
 
 const UpdateOneShooterMutation = gql`
-	mutation UpdateOneShooter($data: ShooterUpdateInput!, $where: ShooterWhereUniqueInput!) {
-		updateOneShooter(data: $data, where: $where) {
+	mutation($id: Int!, $shooter: UpdateShooterShooterInput!) {
+		updateShooter(id: $id, shooter: $shooter) {
 			id
 		}
 	}
@@ -41,8 +41,8 @@ export interface ShooterFormDialogProps {
 	};
 }
 export default function ShooterFormDialog(props: ShooterFormDialogProps) {
-	const [createShooter] = useMutation<Mutation["createOneShooter"], MutationCreateOneShooterArgs>(CreateOneShooterMutation);
-	const [updateShooter] = useMutation<Mutation["updateOneShooter"], MutationUpdateOneShooterArgs>(UpdateOneShooterMutation);
+	const [createShooter] = useMutation<Mutation["createShooter"], MutationCreateShooterArgs>(CreateOneShooterMutation);
+	const [updateShooter] = useMutation<Mutation["updateShooter"], MutationUpdateShooterArgs>(UpdateOneShooterMutation);
 
 	function onCreateShooterFormSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -52,19 +52,11 @@ export default function ShooterFormDialog(props: ShooterFormDialogProps) {
 		if (props.editShooter) {
 			updateShooter({
 				variables: {
-					data: {
-						name: {
-							set: formJson.name as string,
-						},
-						division: {
-							set: formJson.division as Division,
-						},
-						email: {
-							set: formJson.email as Division,
-						},
-					},
-					where: {
-						id: props.editShooter.id,
+					id: props.editShooter.id,
+					shooter: {
+						division: formJson.division as Division,
+						email: formJson.email as string,
+						name: formJson.name as string,
 					},
 				},
 			})
@@ -76,10 +68,10 @@ export default function ShooterFormDialog(props: ShooterFormDialogProps) {
 		} else {
 			createShooter({
 				variables: {
-					data: {
-						name: formJson.name as string,
+					shooter: {
 						division: formJson.division as Division,
 						email: formJson.email as string,
+						name: formJson.name as string,
 					},
 				},
 			})
