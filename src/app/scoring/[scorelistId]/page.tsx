@@ -8,13 +8,13 @@ export const preferredRegion = "auto";
 
 import {
 	Mutation,
-	MutationSwapIdArgs,
-	MutationUpdateOneScorelistArgs,
+	MutationAddRoundsToScorelistArgs,
+	MutationSwapScoresIdArgs,
 	Query,
-	QueryFindUniqueScorelistArgs,
+	QueryScorelistArgs,
 	ScoreState,
 } from "@/gql/graphql";
-import { gql, useMutation, useQuery, useSubscription } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
 import { Add, PersonAdd } from "@mui/icons-material";
 import { RowClassParams } from "ag-grid-community";
 import {
@@ -44,70 +44,71 @@ import { useLoading } from "mui-loading";
 import { shuffle } from "@/lib/utils";
 
 const FetchQuery = gql`
-    query ($where: ScorelistWhereUniqueInput!) {
-        findUniqueScorelist(where: $where) {
-            stage {
-                name
-                createAt
-            }
-            createAt
-            id
-            scores {
+    query Scorelist($id: Int!) {
+		scorelist(id: $id) {
+			id
+			createAt
+			lastUpdate
+			stageId
+			scoreboardId
+			rounds
+			stage {
+				name
+				createAt
+			}
+			scores {
+				id
+				createAt
+				shooterId
+				alphas
+				charlies
+				deltas
+				misses
+				noshoots
+				poppers
+				time
+				proErrorCount
+				scorelistId
+				score
+				hitFactor
+				dqObjectId
+				round
 				accuracy
-                alphas
-                charlies
-                deltas
-                id
-                misses
-                noshoots
-                proErrors {
-                    count
-                }
-                round
-                shooter {
-                    name
-                }
-                time
-                round
-                hitFactor
-                proErrorCount
-                roundPrecentage
-				scorelistOverallPrecentage
-                state
-                poppers
-            }
-            rounds
-        }
-    }
+				state
+				roundPrecentage
+				overallPrecentage
+				shooter {
+					name
+				}
+				proErrors {
+					id
+					count
+					proError {
+						id
+						index
+						title
+						description
+					}
+				}
+			}
+		}
+	}
 `;
 
-const UpdateOneScorelist = gql`
+const AddRoundToScorelistMutation = gql`
     mutation (
-        $where: ScorelistWhereUniqueInput!
-        $data: ScorelistUpdateInput!
+        $id: Int!
     ) {
-        updateOneScorelist(where: $where, data: $data) {
+        addRoundsToScorelist(id: $id) {
             id
         }
     }
 `;
 
 const SwapMutation = gql`
-	mutation($id1: Int!, $id2: Int!) {
-		swapId(id1: $id1, id2: $id2)
+	mutation Swap($srcId: Int!, $destId: Int!) {
+		swapScoresId(srcId: $srcId, destId: $destId)
 	}
-`;
-
-const SubscriptScorelistChange = gql`
-    subscription {
-        subscriptScorelistChange
-    }
-`;
-
-const SubscriptScoreChange = gql`
-    subscription {
-        subscriptScoreChange
-    }
 `;
 
 interface ScoreItem {
@@ -134,31 +135,11 @@ export default function ScorelistPage() {
 	if (isNaN(id)) return <>Error: youve pass a invaild scorelist id</>;
 	const router = useRouter();
 	const theme = useTheme();
-	useSubscription(SubscriptScorelistChange, {
-		async onData() {
-			loading?.startLoading();
-			try {
-				await query.refetch();
-			} finally {
-				loading?.stopLoading();
-			}
-		},
-	});
-	useSubscription(SubscriptScoreChange, {
-		async onData() {
-			await query.refetch();
-		},
-	});
-	const [updateScorelist] = useMutation<
-        Mutation["updateOneScorelist"],
-        MutationUpdateOneScorelistArgs
-    >(UpdateOneScorelist);
+	const [updateScorelist] = useMutation<Mutation["addRoundsToScorelist"], MutationAddRoundsToScorelistArgs>(AddRoundToScorelistMutation);
 	const [selectedRound, setSelectedRound] = React.useState(0);
-	const query = useQuery<Query, QueryFindUniqueScorelistArgs>(FetchQuery, {
+	const query = useQuery<Query, QueryScorelistArgs>(FetchQuery, {
 		variables: {
-			where: {
-				id,
-			},
+			id,
 		},
 		onCompleted() {
 			refreshGrid();
@@ -170,29 +151,23 @@ export default function ScorelistPage() {
 	function addRround() {
 		updateScorelist({
 			variables: {
-				data: {
-					rounds: {
-						set: data.rounds + 1,
-					},
-				},
-				where: {
-					id,
-				},
+				id,
 			},
 		});
 	}
 
 	function refreshGrid() {
 		const Rows: ScoreItem[] = [];
-		if (!query.data?.findUniqueScorelist) return;
-		query.data.findUniqueScorelist.scores.map((v) => {
-			let name_surfix = "";
+		if (!query.data?.scorelist) return;
+		query.data.scorelist.scores?.map((v) => {
+			let nameSurfix = "";
+			if (!v) return;
 			switch (v.state) {
 			case ScoreState.Dq:
-				name_surfix = "(DQ)";
+				nameSurfix = "(DQ)";
 				break;
 			case ScoreState.DidNotFinish:
-				name_surfix = "(DNF)";
+				nameSurfix = "(DNF)";
 				break;
 			}
 
@@ -203,13 +178,13 @@ export default function ScorelistPage() {
 				C: v.charlies,
 				D: v.deltas,
 				Miss: v.misses,
-				Name: `${v.shooter.name} ${name_surfix}`,
+				Name: `${v.shooter.name} ${nameSurfix}`,
 				NoShoots: v.noshoots,
 				Popper: v.poppers ?? 0,
 				ProErrors: v.proErrorCount,
 				Time: v.time,
 				HitFactor: parseFloat(v.hitFactor as unknown as string).toFixed(3),
-				Precentage: selectedRound == 0 ? v.scorelistOverallPrecentage : v.roundPrecentage,
+				Precentage: selectedRound == 0 ? v.overallPrecentage : v.roundPrecentage,
 				State: v.state,
 				Round: selectedRound == 0 ? v.round : undefined,
 				Accuracy: v.accuracy as number,
@@ -230,7 +205,8 @@ export default function ScorelistPage() {
 		setJoinShooterDialogOpem(false);
 	}
 
-	const [ swap ] = useMutation<Mutation["swapId"], MutationSwapIdArgs>(SwapMutation);
+	//TODO refactor swap
+	const [ swap ] = useMutation<Mutation["swapScoresId"], MutationSwapScoresIdArgs>(SwapMutation);
 	const onRowDragEnd = React.useCallback((event: RowDragEndEvent<ScoreItem>) => {
 		try {
 			const movingNode = event.node;
@@ -241,8 +217,8 @@ export default function ScorelistPage() {
 				return;
 			swap({
 				variables: {
-					id1: movingData.Id,
-					id2: overData.Id,
+					srcId: movingData.Id,
+					destId: overData.Id,
 				},
 			});
 		} catch (e) { /* empty */ }
@@ -329,15 +305,25 @@ export default function ScorelistPage() {
 
 	const loading = useLoading();
 
+	//TODO refactor randomizing
 	async function randomizeOrder() {
 		try {
-			const roundIds = data.scores.filter(v => v.round === selectedRound).map(v => v.id);
-			await shuffle(roundIds, async(src, dest) => {
+			const roundIds = data.scores?.filter(v => v?.round === selectedRound).map(v => v?.id);
+			if (!roundIds) throw new Error("No round found");
+			await shuffle(roundIds, async (src, dest) => {
+				if (!roundIds[src] || !roundIds[dest])
+					return;
+				if (src === dest)
+					return;
 				loading?.startLoading();
 				await swap({
 					variables: {
-						id1: roundIds[src],
-						id2: roundIds[dest],
+						// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+						//@ts-expect-error
+						srcId: roundIds[src],
+						// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+						//@ts-expect-error
+						destId: roundIds[dest],
 					},
 				});
 			});
@@ -351,8 +337,8 @@ export default function ScorelistPage() {
 	// #region error handling
 	if (query.error) return <>ERROR: {JSON.stringify(query.error)}</>;
 
-	if (!query.data?.findUniqueScorelist) return <>Loading...</>;
-	const data = query.data.findUniqueScorelist;
+	if (!query.data?.scorelist) return <>Loading...</>;
+	const data = query.data.scorelist;
 	// #endregion
 	return (
 		<Stack
