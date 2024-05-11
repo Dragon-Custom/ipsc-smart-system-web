@@ -42,18 +42,27 @@ const FindManyStageQuery = gql`
 		}
 	}
 `;
-const SubscriptStagesChangeSubscripton = gql`
+const StagesChangeSubscripton = gql`
 	subscription {
-		subscriptStagesChange
+		stagesChange
 	}
 `;
-
+const StagesTagsChangeSubscripton = gql`
+	subscription {
+		stageTagsChange
+	}
+`;
 
 
 export default function Stages() {
 	const allStage = useQuery<Query>(FindManyStageQuery);
 
-	useSubscription(SubscriptStagesChangeSubscripton, {
+	useSubscription(StagesChangeSubscripton, {
+		onData() {
+			allStage.refetch();
+		},
+	});
+	useSubscription(StagesTagsChangeSubscripton, {
 		onData() {
 			allStage.refetch();
 		},
