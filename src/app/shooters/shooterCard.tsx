@@ -2,7 +2,7 @@ import React from "react";
 import { Delete, Edit } from "@mui/icons-material";
 import { IconButton, ListItem, ListItemAvatar, ListItemButton, ListItemText, Paper, Typography } from "@mui/material";
 import { gql, useMutation } from "@apollo/client";
-import { Division, Mutation, MutationDeleteOneShooterArgs } from "@/gql/graphql";
+import { Division, Mutation, MutationDeleteShooterArgs } from "@/gql/graphql";
 import { useConfirm } from "material-ui-confirm";
 import ShooterFormDialog from "./shooterFormDialog";
 
@@ -21,15 +21,15 @@ export interface ShooterCardProps {
 
 
 const DeleteOneShooterMutation = gql`
-	mutation DeleteOneShooter($where: ShooterWhereUniqueInput!){
-		deleteOneShooter(where: $where) {
+	mutation($id: Int!){
+		deleteShooter(id: $id) {
 			id
 		}
 	}
 `;
 
 export default function ShooterCard(props: ShooterCardProps) {
-	const [ deleteShooter ] = useMutation<Mutation["deleteOneShooter"], MutationDeleteOneShooterArgs>(DeleteOneShooterMutation);
+	const [ deleteShooter ] = useMutation<Mutation["deleteShooter"], MutationDeleteShooterArgs>(DeleteOneShooterMutation);
 	const muiConfirm = useConfirm();
 	const [editShooterFormOpen, setEditShooterFormOpen] = React.useState(false);
 
@@ -42,9 +42,7 @@ export default function ShooterCard(props: ShooterCardProps) {
 		}).then(() => {
 			deleteShooter({
 				variables: {
-					where: {
-						id: props.id,
-					},
+					id: props.id,
 				},
 			});
 		}).catch();

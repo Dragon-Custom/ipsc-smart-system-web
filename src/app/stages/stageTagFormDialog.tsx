@@ -1,4 +1,4 @@
-import { Mutation, MutationCreateOneStageTagArgs, MutationUpdateOneStageTagArgs } from "@/gql/graphql";
+import { Mutation, MutationCreateStageTagArgs, MutationUpdateStageTagArgs } from "@/gql/graphql";
 import { gql, useMutation } from "@apollo/client";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@mui/material";
 import { MuiColorInput } from "mui-color-input";
@@ -6,17 +6,21 @@ import React from "react";
 
 
 
-const CreateOneStageTagMutation = gql`
-	mutation($data: StageTagCreateInput!) {
-		createOneStageTag(data:$data) {
+const CreateStageTagMutation = gql`
+	mutation CreateStageTag($stageTag: CreateStageTagInput!) {
+		createStageTag(stageTag: $stageTag) {
 			id
+			title
+			color
 		}
-}
+	}
 `;
-const UpdateOneStageTagMutation = gql`
-	mutation($data: StageTagUpdateInput!, $where: StageTagWhereUniqueInput!) {
-		updateOneStageTag(data: $data, where: $where) {
+const UpdateStageTagMutation = gql`
+	mutation UpdateStageTag($id: Int!, $stageTag: UpdateStageTagInput!) {
+		updateStageTag(id: $id, stageTag: $stageTag) {
 			id
+			title
+			color
 		}
 	}
 `;
@@ -36,8 +40,8 @@ export interface StageTagFormDialogProps {
 	}
 }
 export default function StageTagFormDialog(props: StageTagFormDialogProps) {
-	const [createTag] = useMutation<Mutation["createOneStageTag"], MutationCreateOneStageTagArgs>(CreateOneStageTagMutation);
-	const [updateTag] = useMutation<Mutation["updateOneStageTag"], MutationUpdateOneStageTagArgs>(UpdateOneStageTagMutation);
+	const [ createTag ] = useMutation<Mutation["createStageTag"], MutationCreateStageTagArgs>(CreateStageTagMutation);
+	const [ updateTag ] = useMutation<Mutation["updateStageTag"], MutationUpdateStageTagArgs>(UpdateStageTagMutation);
 	const [color, setColor] = React.useState("rgb(0,0,0)");
 
 	React.useEffect(() => {
@@ -64,23 +68,17 @@ export default function StageTagFormDialog(props: StageTagFormDialogProps) {
 						if (props.editTag) {
 							await updateTag({
 								variables: {
-									data: {
-										color: {
-											set: formJson.color,
-										},
-										title: {
-											set: formJson.title,
-										},
-									},
-									where: {
-										id: props.editTag.id,
+									id: props.editTag.id,
+									stageTag: {
+										color: formJson.color,
+										title: formJson.title,
 									},
 								},
 							});
 						} else {
 							await createTag({
 								variables: {
-									data: {
+									stageTag: {
 										color: formJson.color,
 										title: formJson.title,
 									},

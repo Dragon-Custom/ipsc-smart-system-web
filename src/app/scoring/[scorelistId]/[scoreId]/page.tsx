@@ -7,7 +7,7 @@ export const runtime = "edge";
 export const preferredRegion = "auto";
 
 import Timer from "@/app/timer/timer";
-import { Mutation, MutationUpdateAccuracyArgs, MutationUpdateOneScoreArgs, ProErrorsStoreCreateWithoutScoreInput, Query, QueryFindUniqueScoreArgs, ScoreState } from "@/gql/graphql";
+import { Mutation, MutationSetScoreDnfArgs, MutationSetScoreDqArgs, MutationUpdateScoreArgs, ProErrorStore, Query, QueryScoreArgs , ScoreState, UpdateScoreProErrorInput } from "@/gql/graphql";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { Add, Remove } from "@mui/icons-material";
 import { Button, ButtonGroup, Container, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid, IconButton, InputLabel, MenuItem, Paper, Select, Stack, TextField, TextFieldProps, Typography } from "@mui/material";
@@ -19,67 +19,111 @@ import ProErrorDialog, { ProErrorRecord } from "./proErrorDialog";
 
 
 const FetchQuery = gql`
-	query($where: ScoreWhereUniqueInput!) {
-		findUniqueScore(where: $where) {
+	query Score($id: Int!) {
+		score(id: $id) {
+			id
+			createAt
+			shooterId
 			alphas
 			charlies
 			deltas
-			hitFactor
-			id
 			misses
 			noshoots
 			poppers
+			time
 			proErrorCount
-			proErrors {
-				count
-				proError {
-					title
-					description
-					id
-				}
-			}
+			scorelistId
+			score
+			hitFactor
+			dqObjectId
 			round
+			accuracy
+			state
 			roundPrecentage
+			overallPrecentage
 			shooter {
 				name
 			}
 			scorelist {
 				stage {
-					poppers
 					papers
+					poppers
 				}
 			}
-			time
+			proErrors {
+				count
+				proError {
+					id
+					index
+					title
+					description
+				}
+			}
 		}
-		findManyProErrorObjects {
-			description
-            id
-            index
-            title
-		}
-		findManyDqObjects {
-			category
-			description
+		proErrorObjects {
 			id
 			index
 			title
+			description
+		}
+		dqObjects {
+			id
+			index
+			category
+			title
+			description
 		}
 	}
 `;
 
 const UpdateOneScoreMutation = gql`
-	mutation($data: ScoreUpdateInput!, $where: ScoreWhereUniqueInput!) {
-		updateOneScore(data: $data, where: $where) {
+	mutation UpdateScore($id: Int!, $score: UpdateScoreInput!){
+		updateScore(
+			id: $id
+			score: $score
+		) {
+			id
+			createAt
+			shooterId
+			alphas
+			charlies
+			deltas
+			misses
+			noshoots
+			poppers
+			time
+			proErrorCount
+			scorelistId
+			score
+			hitFactor
+			dqObjectId
+			round
+			accuracy
+			state
+			roundPrecentage
+			overallPrecentage
+		}
+	}
+
+`;
+
+
+const SetDQMuation = gql`
+	mutation ($id: Int!, $dqReasonId: Int!) {
+		setScoreDQ(id: $id, dqReasonId: $dqReasonId) {
 			id
 		}
 	}
 `;
 
-const UpdateAccuracy = gql`
-	mutation ($scoreId: Int!) {
-		updateAccuracy(scoreId: $scoreId)
+const SetDNFMuation = gql`
+	mutation ($id: Int!) {
+		setScoreDNF(id: $id) {
+			id
+		}
 	}
 `;
+
 
 interface ScoreInputControllProps extends Omit<TextFieldProps<"standard">, "onChange"> {
 	hideIncreamentButton?: boolean;
@@ -135,7 +179,7 @@ interface PaperAssignItemProps {
 	onChange: PaperAssignAction;
 	value: PaperData;
 }
-let long_click_death_zone_flag = false;
+let longClickDeathZoneFlag = false;
 function PaperAssignItem(props: PaperAssignItemProps) {
 
 	const attrs = useLongPress(
@@ -143,7 +187,7 @@ function PaperAssignItem(props: PaperAssignItemProps) {
 			// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 			// @ts-expect-error
 			props.onChange(props.id, "reset", e.target?.id);
-			long_click_death_zone_flag = true;
+			longClickDeathZoneFlag = true;
 		},
 		{
 			threshold: 500,
@@ -151,8 +195,8 @@ function PaperAssignItem(props: PaperAssignItemProps) {
 	);
 
 	const onClickHandler: React.MouseEventHandler = (e) => {
-		if (long_click_death_zone_flag) {
-			long_click_death_zone_flag = false;
+		if (longClickDeathZoneFlag) {
+			longClickDeathZoneFlag = false;
 			return;
 		}
 		props.onChange(props.id, "increament", e.currentTarget.id as Zone);
@@ -202,22 +246,20 @@ export default function ScorePage() {
 	const params = useParams();
 	const router = useRouter();
 	const id = parseInt(params.scoreId as string);
-	const [updateScore] = useMutation<Mutation["updateOneScore"], MutationUpdateOneScoreArgs>(UpdateOneScoreMutation);
+	const [updateScore] = useMutation<Mutation["updateScore"], MutationUpdateScoreArgs>(UpdateOneScoreMutation);
 	const confirm = useConfirm();
 	if (isNaN(id))
 		return <>
 			Error: youve pass a invaild score id
 		</>;
 	
-	const query = useQuery<Query, QueryFindUniqueScoreArgs>(FetchQuery, {
+	const query = useQuery<Query, QueryScoreArgs>(FetchQuery, {
 		variables: {
-			where: {
-				id,
-			},
+			id,
 		},
 		onCompleted(data) {
 			const paperData: PaperData[] = [];
-			for (let index = 0; index < (data?.findUniqueScore?.scorelist?.stage?.papers ?? 0); index++) {
+			for (let index = 0; index < (data?.score?.scorelist?.stage?.papers ?? 0); index++) {
 				paperData.push({
 					a: 0,
 					c: 0,
@@ -227,7 +269,68 @@ export default function ScorePage() {
 				});
 			}
 			setPaperData(paperData);
-			setPopper(data?.findUniqueScore?.scorelist?.stage?.poppers ?? 0);
+			setPopper(data?.score?.scorelist?.stage?.poppers ?? 0);
+
+			if (data?.score?.state === ScoreState.Scored) {
+				const newPaperData = [...paperData];
+				setTime(data?.score?.time ?? 0);
+				setPopper(data?.score?.poppers ?? 0);
+				let a = data.score.alphas;
+				let c = data.score.charlies;
+				let d = data.score.deltas;
+				let m = data.score.misses;
+				const ns = data.score.noshoots;
+				newPaperData.forEach((v, i) => {
+					let added = 0;
+					if (a > 1) {
+						newPaperData[i].a = 2;
+						a -= 2;
+						added += 2;
+					} else if (c > 1) {
+						newPaperData[i].c = 2;
+						c -= 2;
+						added += 2;
+					} else if (d > 1) {
+						newPaperData[i].d = 2;
+						d -= 2;
+						added += 2;
+					} else if (m > 1) {
+						newPaperData[i].m = 2;
+						m -= 2;
+						added += 2;
+					}
+					if (added >= 2) return;
+					while (added < 2) {
+						if (a == 1) {
+							newPaperData[i].a = 1;
+							a -= 1;
+							added++;
+						} else if (c == 1) {
+							newPaperData[i].c = 1;
+							c -= 1;
+							added++;
+						} else if (d == 1) {
+							newPaperData[i].d = 1;
+							d -= 1;
+							added++;
+						} else if (m == 1) {
+							newPaperData[i].m = 1;
+							m -= 1;
+							added++;
+						}
+					}
+				});
+				newPaperData[0].ns = ns;
+				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+				//@ts-expect-error
+				const newProError: ProErrorRecord[] = data.score.proErrors?.map((v: ProErrorStore) => {
+					return {
+						count: v.count,
+						id: v.proError.id,
+					};
+				});
+				setProError(newProError);
+			}
 		},
 	});
 
@@ -303,28 +406,18 @@ export default function ScorePage() {
 	const [dqDialogOpen, toggleDqDialogOpen] = useToggle(false);
 	const [selectedDqCategory, setSelectedDqCategory] = React.useState("");
 	const [selectedDqReason, setSelectedDqReason] = React.useState(0);
-	const [ updateAccuracy ] = useMutation<Mutation, MutationUpdateAccuracyArgs>(UpdateAccuracy);
+	const [ setDq ] = useMutation<Mutation["setScoreDQ"], MutationSetScoreDqArgs>(SetDQMuation);
 	async function dq(event: Event) {
 		event.preventDefault();
-		await updateScore({
+		await setDq({
 			variables: {
-				data: {
-					state: {
-						set: ScoreState.Dq,
-					},
-					dqReason: {
-						connect: {
-							id: selectedDqReason,
-						},
-					},
-				},
-				where: {
-					id,
-				},
+				id,
+				dqReasonId: selectedDqReason,
 			},
 		});
 		router.back();
 	}
+	const [ setDnf ] = useMutation<Mutation["setScoreDNF"], MutationSetScoreDnfArgs>(SetDNFMuation);
 	function dnf() {
 		confirm({
 			title: "Are you sure you want to set the score to DNF?",
@@ -333,16 +426,9 @@ export default function ScorePage() {
 				variant: "contained",
 			},
 		}).then(async() => {
-			await updateScore({
+			await setDnf({
 				variables: {
-					data: {
-						state: {
-							set: ScoreState.DidNotFinish,
-						},
-					},
-					where: {
-						id,
-					},
+					id,
 				},
 			});
 			router.back();
@@ -370,58 +456,26 @@ export default function ScorePage() {
 				variant: "contained",
 			},
 		}).then(async () => {
-			const proErrorData: ProErrorsStoreCreateWithoutScoreInput[] = proError.map((v) => {
+			const proErrorData: UpdateScoreProErrorInput[] = proError.map((v) => {
 				return {
 					count: v.count,
-					proError: {
-						connect: {
-							id: v.id,
-						},
-					},
+					proErrorId: v.id,
 				};
 			});
 			await updateScore({
 				variables: {
-					data: {
-						state: {
-							set: ScoreState.Scored,
-						},
-						alphas: {
-							set: paperCount.a,
-						},
-						charlies: {
-							set: paperCount.c,
-						},
-						deltas: {
-							set: paperCount.d,
-						},
-						misses: {
-							set: paperCount.m,
-						},
-						noshoots: {
-							set: paperCount.ns,
-						},
-						poppers: {
-							set: popper,
-						},
-						time: {
-							set: time,
-						},
-						proErrorCount: {
-							set: proErrosCount,
-						},
-						proErrors: {
-							create: proErrorData,
-						},
+					id,
+					score: {
+						alphas: paperCount.a,
+						charlies: paperCount.c,
+						deltas: paperCount.d,
+						misses: paperCount.m,
+						noshoots: paperCount.ns,
+						poppers: popper,
+						time,
+						round: query.data?.score?.round,
+						proErrors: proErrorData,
 					},
-					where: {
-						id,
-					},
-				},
-			});
-			await updateAccuracy({
-				variables: {
-					scoreId: id,
 				},
 			});
 			router.back();
@@ -446,13 +500,13 @@ export default function ScorePage() {
 		return hitFactor;
 	}, [totalScore, time]);
 	
-	if (!query.data?.findUniqueScore)
+	if (!query.data?.score)
 		return <>Loading...</>;
 
-	const data = query.data.findUniqueScore;
+	const data = query.data.score;
 	return (
 		<>
-			{query.data?.findManyDqObjects ?
+			{query.data?.dqObjects ?
 				<Dialog
 					open={dqDialogOpen}
 					onClose={() => toggleDqDialogOpen()}
@@ -476,15 +530,9 @@ export default function ScorePage() {
 									value={selectedDqCategory}
 									onChange={(v) => setSelectedDqCategory(v.target.value)}
 								>
-									{(() => {
-										try {
-											Object.keys(Object.groupBy(query.data?.findManyDqObjects ?? [], ({ category }) => category)).map(v => {
-												return <MenuItem key={v} value={v} >{v}</MenuItem>;
-											});
-										} catch(e) {
-											return <></>;
-										}
-									})()}
+									{Object.keys(Object.groupBy(query.data?.dqObjects ?? [], (dqObj) => dqObj?.category ?? "")).map(v => {
+										return <MenuItem key={v} value={v} >{v}</MenuItem>;
+									})}
 								</Select>
 							</FormControl>
 							<FormControl>
@@ -496,15 +544,15 @@ export default function ScorePage() {
 									label="DQ Reason"
 									onChange={(v) => setSelectedDqReason(parseInt(v.target.value as string))}
 								>
-									{query.data?.findManyDqObjects.map(v => {
-										if (v.category !== selectedDqCategory)
+									{query.data?.dqObjects?.map(v => {
+										if (v?.category !== selectedDqCategory )
 											return;
 										return <MenuItem key={v.index} value={v.id} >{v.title}</MenuItem>;
 									})}
 								</Select>
 							</FormControl>
 							<Typography variant="h5">
-								{query.data?.findManyDqObjects.find(v => v.id == selectedDqReason)?.description}
+								{query.data?.dqObjects?.find(v => v?.id == selectedDqReason)?.description}
 							</Typography>
 						</Stack>
 					</DialogContent>
@@ -524,7 +572,9 @@ export default function ScorePage() {
 			<ProErrorDialog
 				onClose={() => toggleProErrorOpen()}
 				open={proErrorOpen}
-				proErrors={query.data.findManyProErrorObjects}
+				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+				// @ts-expect-error
+				proErrors={query.data?.proErrorObjects ?? []}
 				value={proError}
 				onChange={setProError}
 			/>

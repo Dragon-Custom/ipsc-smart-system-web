@@ -1,51 +1,54 @@
 import React from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, Stack } from "@mui/material";
 import { gql, useMutation, useQuery } from "@apollo/client";
-import { Mutation, MutationCreateOneScorelistArgs, Query } from "@/gql/graphql";
+import { Mutation, MutationCreateScorelistArgs, Query } from "@/gql/graphql";
 import StageCard from "../stages/stageCard";
 
-const FindManyStageQuery = gql`
-	query{
-		findManyStage {
+const FetchDataQuery = gql`
+	query {
+		stages {
 			id
+			createAt
 			name
+			description
+			papers
+			poppers
+			noshoots
+			gunCondition
+			designerId
+			walkthroughTime
+			minRounds
+			maxScore
+			stageType
+			image {
+				id
+			}
 			designer {
 				name
 			}
-			description
-			gunCondition
-			imageId
-			stageType
-			createAt
 			tags {
-                id
-                tag{
-                    color
-                    id
-                    title
-                }
-            }
+				id
+				tag {
+					id
+					title
+					color
+				}
+			}
 		}
-	}
-`;
-
-const FindManyScoreboardQuery = gql`
-	query {
-		findManyScoreboard {
+		scoreboards {
 			id
+			createAt
 			lastUpdate
 			name
-			createAt
 		}
 	}
 `;
-
-const CreateOneScorelistMutation = gql`
-	mutation ($data: ScorelistCreateInput!){
-		createOneScorelist(data: $data) {
+const CreateScorelistMutation = gql`
+	mutation ($scorelist: CreateScorelistInput!){
+		createScorelist(scorelist: $scorelist) {
 			id
 		}
-}
+	}
 `;
 
 export interface CreateScorelistDialogProps {
@@ -54,9 +57,8 @@ export interface CreateScorelistDialogProps {
 }
 
 export default function CreateScorelistDialog(props: CreateScorelistDialogProps) {
-	const allStage = useQuery<Query>(FindManyStageQuery);
-	const allScoreboard = useQuery<Query>(FindManyScoreboardQuery);
-	const [createScorelist] = useMutation<Mutation["createOneScorelist"], MutationCreateOneScorelistArgs>(CreateOneScorelistMutation);
+	const query = useQuery<Query>(FetchDataQuery);
+	const [createScorelist] = useMutation<Mutation["createScorelist"], MutationCreateScorelistArgs>(CreateScorelistMutation);
 
 	async function onCreateScorelistSubmit (event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -64,17 +66,9 @@ export default function CreateScorelistDialog(props: CreateScorelistDialogProps)
 		const formJson = Object.fromEntries((formData).entries()) as unknown as { stageId: string, scoreboardId: string };
 		await createScorelist({
 			variables: {
-				data: {
-					stage: {
-						connect: {
-							id: parseInt(formJson.stageId),
-						},
-					},
-					scoreboard: {
-						connect: {
-							id: parseInt(formJson.scoreboardId),
-						},
-					},
+				scorelist: {
+					scoreboardId: parseInt(formJson.scoreboardId),
+					stageId: parseInt(formJson.stageId),
 				},
 			},
 		});
@@ -103,8 +97,9 @@ export default function CreateScorelistDialog(props: CreateScorelistDialogProps)
 								name="scoreboardId"
 								required
 							>
-								{allScoreboard.data ? 
-									allScoreboard.data.findManyScoreboard.map(v => {
+								{query.data ? 
+									query.data.scoreboards?.map(v => {
+										if (!v) return <></>;
 										return <MenuItem key={v.id} value={v.id}>{v.name}</MenuItem>;
 									})
 									: <></>}
@@ -117,8 +112,9 @@ export default function CreateScorelistDialog(props: CreateScorelistDialogProps)
 								name="stageId"
 								required
 							>
-								{allStage.data ? 
-									allStage.data.findManyStage.map(v => {
+								{query.data ? 
+									query.data.stages?.map(v => {
+										if (!v) return <></>;
 										return <MenuItem key={v.id} value={v.id}>
 											<StageCard
 												createAt={v.createAt}
@@ -126,10 +122,10 @@ export default function CreateScorelistDialog(props: CreateScorelistDialogProps)
 												designerName={v.designer.name}
 												gunConditon={v.gunCondition}
 												id={v.id}
-												imageId={v.imageId}
+												imageId={v.image.id}
 												name={v.name}
 												stageType={v.stageType}
-												tags={v.tags.map(v => v.tag)}
+												tags={v.tags?.map(v => v?.tag)}
 												disableOnClick
 											/>
 										</MenuItem>;

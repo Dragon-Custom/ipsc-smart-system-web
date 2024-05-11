@@ -1,5 +1,5 @@
 "use client";
-import { Mutation, MutationCreateOneScoreboardArgs, MutationDeleteOneScoreboardArgs, MutationUpdateOneScoreboardArgs, Query } from "@/gql/graphql";
+import { Mutation, MutationCreateScoreboardArgs, MutationDeleteScoreboardArgs, MutationUpdateScoreboardArgs, Query } from "@/gql/graphql";
 import { gql, useMutation, useQuery, useSubscription } from "@apollo/client";
 import { Add, Delete, Edit } from "@mui/icons-material";
 import { Grid, IconButton, Paper, SpeedDial, SpeedDialAction, SpeedDialIcon, Stack, Tab, Tabs, Typography } from "@mui/material";
@@ -9,76 +9,93 @@ import CreateScorelistDialog from "./createScorelistDialog";
 import ScorelistCard from "./scorelistCard";
 
 
-
 const FetchDataQuery = gql`
-	query {
-		findManyScoreboard {
+	query Scoreboards {
+		scoreboards {
 			id
+			createAt
 			lastUpdate
 			name
-			createAt
 			scorelists {
 				id
 				createAt
+				lastUpdate
+				stageId
+				scoreboardId
+				rounds
 				stage {
 					name
-					imageId
+					image {
+						id
+					}
 				}
-				_count {
-                	scores
-            	}
+				scores {
+					id
+				}
 			}
 		}
 	}
 `;
-const CreateOneScoreboardMutation = gql`
-	mutation($data: ScoreboardCreateInput!) {
-		createOneScoreboard(data: $data){
+
+const UpdateScoreboardMutation = gql`
+	mutation UpdateScoreboard($id: Int!, $name: String!){
+		updateScoreboard(id: $id, name: $name) {
+			id
+			createAt
+			lastUpdate
+			name
+		}
+	}
+`;
+
+const CreateScoreboardMutation = gql`
+	mutation CreateScoreboard($name: String!){
+		createScoreboard(name: $name) {
+			id
+			createAt
+			lastUpdate
+			name
+		}
+	}
+`;
+
+const DeleteScoreboardMutation = gql`
+	mutation DeleteScoreboard($id: Int!){
+		deleteScoreboard(id: $id) {
 			id
 		}
 	}
 `;
-const UpdateOneScoreboardMutation = gql`
-	mutation($data: ScoreboardUpdateInput!, $where: ScoreboardWhereUniqueInput!) {
-		updateOneScoreboard(data: $data, where: $where){
-			id
-		}
-	}
-`;
-const DeleteOneScoreboardMutation = gql`
-	mutation($where: ScoreboardWhereUniqueInput!) {
-		deleteOneScoreboard(where: $where){
-			id
-		}
-	}
-`;
-const SubscriptScoreboardsChangeSubscription= gql`
+
+const ScoreboardChangedSubscription = gql`
 	subscription {
-		subscriptScoreboardsChange
+		scoreboardsChange
 	}
 `;
-const SubscriptScorelistChangeSubscription= gql`
+
+const ScorelistChangedSubscription = gql`
 	subscription {
-		subscriptScorelistChange
+		scorelistsChange
 	}
 `;
 
 export default function Scoring() {
-	const scoreboard = useQuery<Query>(FetchDataQuery);
-	const [ createScoreboard ] = useMutation<Mutation["createOneScoreboard"], MutationCreateOneScoreboardArgs>(CreateOneScoreboardMutation);
-	const [ updateScoreboard ] = useMutation<Mutation["updateOneScoreboard"], MutationUpdateOneScoreboardArgs>(UpdateOneScoreboardMutation);
-	const [ deleteScoreboard ] = useMutation<Mutation["deleteOneScoreboard"], MutationDeleteOneScoreboardArgs>(DeleteOneScoreboardMutation);
-	useSubscription(SubscriptScoreboardsChangeSubscription, {
-		onData() {
-			scoreboard.refetch();
-		},
-	});
-	useSubscription(SubscriptScorelistChangeSubscription, {
-		onData() {
-			scoreboard.refetch();
-		},
-	});
+	const query = useQuery<Query>(FetchDataQuery);
+	const [ createScoreboard ] = useMutation<Mutation["createScoreboard"], MutationCreateScoreboardArgs>(CreateScoreboardMutation);
+	const [ updateScoreboard ] = useMutation<Mutation["updateScoreboard"], MutationUpdateScoreboardArgs>(UpdateScoreboardMutation);
+	const [ deleteScoreboard ] = useMutation<Mutation["deleteScoreboard"], MutationDeleteScoreboardArgs>(DeleteScoreboardMutation);
 	const muiConfirm = useConfirm();
+
+	useSubscription(ScoreboardChangedSubscription, {
+		onData() {
+			query.refetch();
+		},
+	});
+	useSubscription(ScorelistChangedSubscription, {
+		onData() {
+			query.refetch();
+		},
+	});
 
 	const [selectedScoreBoard, setSelectedScoreBoard] = React.useState(0);
 	function onScoreboardTabChange(e: unknown, v: number) {
@@ -91,16 +108,14 @@ export default function Scoring() {
 			return;
 		createScoreboard({
 			variables: {
-				data: {
-					name,
-				},
+				name,
 			},
 		});
 	}
 
 	function onDeleteButtonClick() {
 		muiConfirm({
-			title: `Are you sure you want to delete scoreboard (${scoreboard.data?.findManyScoreboard.find(v => v.id == selectedScoreBoard)?.name})`,
+			title: `Are you sure you want to delete scoreboard (${query.data?.scoreboards?.find(v => v?.id == selectedScoreBoard)?.name})`,
 			content: "This will also DELETE ALL OF THE SCORE inside of this scoreboard",
 			confirmationText: "Delete",
 			confirmationButtonProps: {
@@ -110,9 +125,7 @@ export default function Scoring() {
 			.then(() => {
 				deleteScoreboard({
 					variables: {
-						where: {
-							id: selectedScoreBoard,
-						},
+						id: selectedScoreBoard,
 					},
 				});
 				setSelectedScoreBoard(0);
@@ -124,14 +137,8 @@ export default function Scoring() {
 			return;
 		updateScoreboard({
 			variables: {
-				data: {
-					name: {
-						set: name,
-					},
-				},
-				where: {
-					id: selectedScoreBoard,
-				},
+				name,
+				id: selectedScoreBoard,
 			},
 		});
 	}
@@ -149,7 +156,7 @@ export default function Scoring() {
 			<Paper elevation={5} >
 				<Paper elevation={2}>
 					<Stack direction={"row"} justifyContent={"space-between"}>
-						<Typography variant="h5" p={2}>Scoreboard: {scoreboard.data?.findManyScoreboard.find(v=>v.id==selectedScoreBoard)?.name ?? "All"}</Typography>
+						<Typography variant="h5" p={2}>Scoreboard: {query.data?.scoreboards?.find(v=>v?.id==selectedScoreBoard)?.name ?? "All"}</Typography>
 						{selectedScoreBoard == 0 ? <></> :
 							<Paper elevation={10} sx={{mr:2, alignSelf: "center"}}>
 								<IconButton color="primary" onClick={onEditButtonClick}>
@@ -172,12 +179,12 @@ export default function Scoring() {
 						>
 							<Tab label="Scoreboard list" disabled value={-1} sx={{backgroundColor: (theme) => theme.palette.background.paper}} />
 							<Tab label="All" value={0} />
-							{scoreboard.data ? 
-								scoreboard.data.findManyScoreboard.map(v => {
+							{query.data ? 
+								query.data.scoreboards?.map(v => {
 									return <Tab
-										key={v.id}
-										value={v.id}
-										label={v.name}
+										key={v?.id}
+										value={v?.id}
+										label={v?.name}
 									/>;
 								})
 								:<Tab label="Loading..." />}
@@ -185,18 +192,18 @@ export default function Scoring() {
 					</Grid>
 					<Grid item xs={8} md={10}>
 						<Paper elevation={5} sx={{ p: 2 }}>
-							{scoreboard.data ? 
-								scoreboard.data.findManyScoreboard.map(scoreboard => {
-									return scoreboard.scorelists.map(scorelist => {
+							{query.data ? 
+								query.data.scoreboards?.map(scoreboard => {
+									return scoreboard?.scorelists?.map(scorelist => {
 										if (scoreboard.id !== selectedScoreBoard && selectedScoreBoard !== 0) 
 											return;
 										return (
 											<>
 												<ScorelistCard
 													key={scorelist.id}
-													imageId={scorelist.stage?.imageId ?? ""}
+													imageId={scorelist.stage?.image.id ?? ""}
 													scorelistName={`${new Date(scorelist.createAt).toLocaleDateString()} ${scorelist.stage?.name}`}
-													scoreCount={scorelist._count.scores}
+													scoreCount={(scorelist?.scores ?? []).length}
 													scorelistId={scorelist.id}
 												/>
 											</>

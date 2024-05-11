@@ -4,7 +4,7 @@ import { useState } from "react";
 
 const GetImageQuery = gql`
 	query($id: String!){
-		getImage(id: $id)
+		image(id: $id)
 	}
 `;
 
@@ -16,7 +16,7 @@ export default function useGraphqlImage(id: string): JpegBase64Image {
 			id: id,
 		},
 		onCompleted(data) {
-			setBase64Img("data:image/jpeg;base64," + data.getImage);
+			setBase64Img("data:image/jpeg;base64," + data.image);
 		},
 	});
 	return base64Img;

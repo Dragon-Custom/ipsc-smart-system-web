@@ -9,9 +9,9 @@ import { Add } from "@mui/icons-material";
 import ShooterFormDialog from "./shooterFormDialog";
 import { useRouter } from "next/navigation";
 
-const FindManyShooterQuery = gql`
-	query FindManyShooter{
-		findManyShooter {
+const DataQuery = gql`
+	query {
+		shooters {
 			division
 			id
 			createAt
@@ -22,19 +22,18 @@ const FindManyShooterQuery = gql`
 `;
 
 
-const SubscriptShootersChangeSubscription = gql`
-	subscription SubscriptShootersChange{
-    	subscriptShootersChange
+const ShootersChangeSubscription = gql`
+	subscription {
+		shootersChange
 	}
 `;
 
 export default function Shooters() {
-	const { data, refetch } = useQuery<Query>(FindManyShooterQuery);
-	useSubscription(SubscriptShootersChangeSubscription, {
+	const { data, refetch } = useQuery<Query>(DataQuery);
+	useSubscription(ShootersChangeSubscription, {
 		onData() {
 			refetch();
 		},
-		shouldResubscribe: false,
 	});
 	const router = useRouter();
 
@@ -56,18 +55,24 @@ export default function Shooters() {
 		<>
 			<Typography variant="h4" p={2}>Shooter list: </Typography>
 			<List>
-
-				{data?.findManyShooter.toSorted((a, b) => (a.id - b.id)).map((v, k) => (
-					<Box key={k}>
+				{/* // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+					//@ts-expect-error*/}
+				{data?.shooters?.toSorted((a, b) => (a.id - b.id)).map((v, k) => {
+					if (!v)
+						return <></>;
+					return <Box key={k}>
 						<ShooterCard
 							createDate={new Date(v.createAt).toLocaleDateString() + " " + new Date(v.createAt).toLocaleTimeString()}
 							showMutationButton
-							{...v}
 							onClick={onShooterCardClick}
+							division={v.division}
+							id={v.id}
+							name={v.name}
+							email={v.email}
 						/>
-						<Divider sx={{ my: .5}} />
-					</Box>
-				))}
+						<Divider sx={{ my: .5 }} />
+					</Box>;
+				})}
 			</List>
 			<SpeedDial
 				ariaLabel="Shooters operation"

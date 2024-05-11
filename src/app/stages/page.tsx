@@ -4,47 +4,65 @@ import { Box, Paper, SpeedDial, SpeedDialAction, SpeedDialIcon, Tab, Tabs, Typog
 import React from "react";
 import StageFormDialog from "./stageFormDialog";
 import { gql, useQuery, useSubscription } from "@apollo/client";
-import { Query } from "@/gql/graphql";
+import { Query, StageTag } from "@/gql/graphql";
 import StageCard from "./stageCard";
 import StageTagManageDialog from "./stageTagManageDialog";
 
 
 const FindManyStageQuery = gql`
-	query{
-		findManyStage {
+	query Stages {
+		stages {
 			id
+			createAt
 			name
+			description
+			papers
+			poppers
+			noshoots
+			gunCondition
+			designerId
+			walkthroughTime
+			minRounds
+			maxScore
+			stageType
 			designer {
 				name
 			}
-			description
-			gunCondition
-			imageId
-			stageType
-			createAt
 			tags {
-                id
-                tag{
-                    color
-                    id
-                    title
-                }
-            }
+				id
+				tag {
+					id
+					title
+					color
+				}
+			}
+			image {
+				id
+			}
 		}
 	}
 `;
-const SubscriptStagesChangeSubscripton = gql`
+const StagesChangeSubscripton = gql`
 	subscription {
-		subscriptStagesChange
+		stagesChange
 	}
 `;
-
+const StagesTagsChangeSubscripton = gql`
+	subscription {
+		stageTagsChange
+	}
+`;
 
 
 export default function Stages() {
 	const allStage = useQuery<Query>(FindManyStageQuery);
 
-	useSubscription(SubscriptStagesChangeSubscripton, {
+	useSubscription(StagesChangeSubscripton, {
+		onData() {
+			allStage.refetch();
+		},
+	});
+	useSubscription(StagesTagsChangeSubscripton, {
 		onData() {
 			allStage.refetch();
 		},
@@ -94,8 +112,8 @@ export default function Stages() {
 						}} />
 					</Tabs>
 					<Box sx={{ p: 1}} width={"100%"}>
-						{!allStage.data ? <>Loading...</> : allStage.data?.findManyStage.map(v => {
-							if (tabIndex == "All" || tabIndex == v.stageType)
+						{!allStage.data ? <>Loading...</> : allStage.data?.stages.map(v => {
+							if ((tabIndex == "All" || tabIndex == v?.stageType) && v)
 								return (<StageCard
 									key={v.id}
 									id={v.id}
@@ -103,10 +121,10 @@ export default function Stages() {
 									designerName={v.designer.name}
 									description={v.description ?? ""}
 									gunConditon={v.gunCondition}
-									imageId={v.imageId}
+									imageId={v.image.id}
 									stageType={v.stageType}
 									createAt={v.createAt}
-									tags={v.tags.map(v => v.tag)}
+									tags={v.tags?.map(v => v?.tag) as StageTag[]}
 								/>);
 						})}
 					</Box>
