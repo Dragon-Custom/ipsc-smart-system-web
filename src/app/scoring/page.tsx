@@ -1,6 +1,6 @@
 "use client";
 import { Mutation, MutationCreateScoreboardArgs, MutationDeleteScoreboardArgs, MutationUpdateScoreboardArgs, Query } from "@/gql/graphql";
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery, useSubscription } from "@apollo/client";
 import { Add, Delete, Edit } from "@mui/icons-material";
 import { Grid, IconButton, Paper, SpeedDial, SpeedDialAction, SpeedDialIcon, Stack, Tab, Tabs, Typography } from "@mui/material";
 import { useConfirm } from "material-ui-confirm";
@@ -60,10 +60,22 @@ const CreateScoreboardMutation = gql`
 `;
 
 const DeleteScoreboardMutation = gql`
-	mutation DeleteScoreboard($name: String!){
-		deleteScoreboard(name: $name) {
+	mutation DeleteScoreboard($id: Int!){
+		deleteScoreboard(id: $id) {
 			id
 		}
+	}
+`;
+
+const ScoreboardChangedSubscription = gql`
+	subscription {
+		scoreboardsChange
+	}
+`;
+
+const ScorelistChangedSubscription = gql`
+	subscription {
+		scorelistsChange
 	}
 `;
 
@@ -73,6 +85,17 @@ export default function Scoring() {
 	const [ updateScoreboard ] = useMutation<Mutation["updateScoreboard"], MutationUpdateScoreboardArgs>(UpdateScoreboardMutation);
 	const [ deleteScoreboard ] = useMutation<Mutation["deleteScoreboard"], MutationDeleteScoreboardArgs>(DeleteScoreboardMutation);
 	const muiConfirm = useConfirm();
+
+	useSubscription(ScoreboardChangedSubscription, {
+		onData() {
+			query.refetch();
+		},
+	});
+	useSubscription(ScorelistChangedSubscription, {
+		onData() {
+			query.refetch();
+		},
+	});
 
 	const [selectedScoreBoard, setSelectedScoreBoard] = React.useState(0);
 	function onScoreboardTabChange(e: unknown, v: number) {
