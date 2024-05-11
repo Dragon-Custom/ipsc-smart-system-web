@@ -1,4 +1,4 @@
-import { ProErrorObjects } from "@/gql/graphql";
+import { ProErrorObject } from "@/gql/graphql";
 import { Add, Remove } from "@mui/icons-material";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, Grid, IconButton, InputLabel, MenuItem, Paper, Select, Stack, Typography } from "@mui/material";
 import React from "react";
@@ -13,7 +13,7 @@ export const preferredRegion = "auto";
 export interface ProErrorDialogProps {
 	open: boolean;
 	onClose: () => void;
-	proErrors: ProErrorObjects[];
+	proErrors: ProErrorObject[];
 	value: ProErrorRecord[],
 	onChange: (newVal: ProErrorRecord[]) => void;
 }
