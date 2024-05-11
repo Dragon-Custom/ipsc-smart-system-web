@@ -14,7 +14,7 @@ import {
 	QueryScorelistArgs,
 	ScoreState,
 } from "@/gql/graphql";
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery, useSubscription } from "@apollo/client";
 import { Add, PersonAdd } from "@mui/icons-material";
 import { RowClassParams } from "ag-grid-community";
 import {
@@ -111,6 +111,18 @@ const SwapMutation = gql`
 	}
 `;
 
+const ScoresChangeSubscription = gql`
+	subscription {
+		scoresChange
+	}
+`;
+const ScorelistsChangeSubscription = gql`
+	subscription {
+		scorelistsChange
+	}
+`;
+
+
 interface ScoreItem {
     Name: string;
     A: number;
@@ -146,6 +158,16 @@ export default function ScorelistPage() {
 		},
 		pollInterval: 10000,
 		fetchPolicy: "no-cache",
+	});
+	useSubscription(ScoresChangeSubscription, {
+		onData() {
+			query.refetch();
+		},
+	});
+	useSubscription(ScorelistsChangeSubscription, {
+		onData() {
+			query.refetch();
+		},
 	});
 
 	function addRround() {
@@ -381,15 +403,19 @@ export default function ScorelistPage() {
 						<Button onClick={() => autoSizeAll(false)}>
 								Resize the grid
 						</Button>
-						<FormControlLabel value={enableOrdering} onChange={() => toggleOrdering()} control={<Switch />} label="Enable ordering" />
+						{selectedRound == 0 ||
+							<FormControlLabel value={enableOrdering} onChange={() => toggleOrdering()} control={<Switch />} label="Enable ordering" />
+						}
 					</Stack>
-					<Stack direction={mobileBreakpoint ? "row" : "row-reverse"} gap={2}>
-						<ButtonGroup variant="text">
-							<Button onClick={randomizeOrder}>
-								Reshuffle
-							</Button>
-						</ButtonGroup>
-					</Stack>
+					{selectedRound == 0 ||
+						<Stack direction={mobileBreakpoint ? "row" : "row-reverse"} gap={2}>
+							<ButtonGroup variant="text">
+								<Button onClick={randomizeOrder}>
+									Reshuffle
+								</Button>
+							</ButtonGroup>
+						</Stack>
+					}
 				</Stack>
 				<div
 					className="ag-theme-alpine-dark" // applying the grid theme
@@ -424,12 +450,12 @@ export default function ScorelistPage() {
 					tooltipOpen
 					onClick={addRround}
 				/>
-				<SpeedDialAction
+				{selectedRound == 0 || <SpeedDialAction
 					icon={<PersonAdd />}
 					tooltipTitle={"Join shooters"}
 					tooltipOpen
 					onClick={openJoinShooterDialog}
-				/>
+				/>}
 			</SpeedDial>
 
 			<JoinShooterDialog

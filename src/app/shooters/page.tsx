@@ -22,19 +22,18 @@ const DataQuery = gql`
 `;
 
 
-const SubscriptShootersChangeSubscription = gql`
-	subscription SubscriptShootersChange{
-    	subscriptShootersChange
+const ShootersChangeSubscription = gql`
+	subscription {
+		shootersChange
 	}
 `;
 
 export default function Shooters() {
 	const { data, refetch } = useQuery<Query>(DataQuery);
-	useSubscription(SubscriptShootersChangeSubscription, {
+	useSubscription(ShootersChangeSubscription, {
 		onData() {
 			refetch();
 		},
-		shouldResubscribe: false,
 	});
 	const router = useRouter();
 
