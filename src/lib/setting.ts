@@ -16,6 +16,7 @@ export function useLocalSetting() {
 
 	function reset() {
 		window.localStorage.clear();
+		window.location.reload();
 	}
 
 	return {

@@ -1,6 +1,6 @@
 "use client";
 import { useLocalSetting } from "@/lib/setting";
-import { Container, Divider, Paper, Stack, Switch, TextField, Typography, styled } from "@mui/material";
+import { Button, Container, Divider, Paper, Stack, Switch, TextField, Typography, styled } from "@mui/material";
 import React from "react";
 
 
@@ -17,11 +17,11 @@ Section.defaultProps = {
 
 
 export default function Settings() {
-	const { setting, saveSetting } = useLocalSetting();
+	const { setting, saveSetting, reset } = useLocalSetting();
 
 	return (
 		<>
-			<Container maxWidth="sm" sx={{height: "100%"}}>
+			<Container maxWidth="sm" sx={{height: "95%"}}>
 				<Paper sx={{ height: "100%", p: 2 }} elevation={3}>
 					<Stack spacing={2} divider={<Divider />}>
 						<Section>
@@ -34,6 +34,7 @@ export default function Settings() {
 						</Section>
 					</Stack>
 				</Paper>
+				<Button fullWidth variant="contained" onClick={reset}>Reset</Button>
 			</Container>
 		</>
 	);
