@@ -1,6 +1,6 @@
 "use client";
 import { useLocalSetting } from "@/lib/setting";
-import { Container, Divider, Paper, Stack, Switch, Typography, styled } from "@mui/material";
+import { Container, Divider, Paper, Stack, Switch, TextField, Typography, styled } from "@mui/material";
 import React from "react";
 
 
@@ -28,7 +28,10 @@ export default function Settings() {
 							<Typography variant="button">Dark mode</Typography>
 							<Switch checked={setting.darkMode} onClick={() => saveSetting({...setting, darkMode: !setting.darkMode})} />
 						</Section>
-						
+						<Section>
+							<Typography variant="button">Score Code Format</Typography>
+							<TextField multiline value={setting.scoreCodeFormat} onChange={(v) => saveSetting({...setting, scoreCodeFormat: v.target.value})} />
+						</Section>
 					</Stack>
 				</Paper>
 			</Container>
