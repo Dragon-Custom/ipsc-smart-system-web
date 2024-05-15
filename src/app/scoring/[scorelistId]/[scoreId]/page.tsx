@@ -16,6 +16,7 @@ import { useConfirm } from "material-ui-confirm";
 import { useParams, useRouter } from "next/navigation";
 import React from "react";
 import ProErrorDialog, { ProErrorRecord } from "./proErrorDialog";
+import { useLocalSetting } from "@/lib/setting";
 
 
 const FetchQuery = gql`
@@ -500,6 +501,24 @@ export default function ScorePage() {
 		return hitFactor;
 	}, [totalScore, time]);
 	
+	const { setting } = useLocalSetting();
+
+	const scoreCode = React.useMemo(() => {
+		let code = setting.scoreCodeFormat;
+		code = code.replace("{#A}", paperCount.a.toString());
+		code = code.replace("{#C}", paperCount.c.toString());
+		code = code.replace("{#D}", paperCount.d.toString());
+		code = code.replace("{#MISS}", paperCount.m.toString());
+		code = code.replace("{#NOSHOOT}", paperCount.ns.toString());
+		code = code.replace("{#PROERROR}", proErrosCount.toString());
+		code = code.replace("{#POPPER}", popper.toString());
+		code = code.replace("{#SCORE}", totalScore.toString());
+		code = code.replace("{#TIME}", time.toFixed(2));
+		code = code.replace("{#HITFACTOR}", hitFactor.toFixed(2));
+		return code;
+	}, [proErrosCount, totalScore, hitFactor]);
+
+
 	if (!query.data?.score)
 		return <>Loading...</>;
 
@@ -658,7 +677,7 @@ export default function ScorePage() {
 								textAlign: "center",
 							};
 						}}>
-							{paperCount.a}A {paperCount.c}C {paperCount.d}D {popper}PP {paperCount.m}M {paperCount.ns}NS {proErrosCount}PE {time.toFixed(2)}s {hitFactor.toFixed(2)}HF
+							{scoreCode}
 						</Typography>
 					</Stack>
 				</Paper>
