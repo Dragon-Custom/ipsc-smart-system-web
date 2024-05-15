@@ -22,6 +22,7 @@ import GlobalLayoutSideBar from "@/components/GlobalLayout/GlobalLayoutSideBar";
 import { ApolloProvider } from "@apollo/client";
 import { client } from "../lib/clientApollo";
 import { LoadingProvider } from "mui-loading";
+import { useLocalSetting } from "@/lib/setting";
 
 
 const INTER = inter({ subsets: ["latin"] });
@@ -45,13 +46,15 @@ export default function RootLayout({
 }>) {
 	const [sideBarState, dispatch] = React.useReducer(sideBarReducer, false);
 	const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+	const { setting} = useLocalSetting();
+
 	const mode = React.useMemo(() => {
 		return prefersDarkMode ? "dark" : "light";
 	}, [prefersDarkMode]);
 
 	const THEME = createTheme({
 		palette: {
-			mode,
+			mode: setting.darkMode ? "dark" : "light",
 		},
 	});
 

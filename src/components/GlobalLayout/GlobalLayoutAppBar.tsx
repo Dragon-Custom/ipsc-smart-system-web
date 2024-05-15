@@ -9,13 +9,15 @@ export const preferredRegion = "auto";
 import React from "react";
 import {
 	AppBar,
+	Box,
 	IconButton,
 	Slide,
 	Toolbar,
 	Typography,
 	useScrollTrigger,
 } from "@mui/material";
-import { Menu } from "@mui/icons-material";
+import { DarkMode, LightMode, Menu } from "@mui/icons-material";
+import { useLocalSetting } from "@/lib/setting";
 
 export interface GlobalLayoutAppBarProps {
     onMenuClick?: () => void;
@@ -38,6 +40,8 @@ function HideOnScroll(props: { children: React.ReactElement }) {
 }
 
 export default function GlobalLayoutAppBar(props: GlobalLayoutAppBarProps) {
+	const { setting, saveSetting} = useLocalSetting();
+
 	return (
 		<HideOnScroll>
 			<AppBar>
@@ -59,6 +63,16 @@ export default function GlobalLayoutAppBar(props: GlobalLayoutAppBarProps) {
 					>
 						<>{process.env.NEXT_PUBLIC_APP_TITLE}</>
 					</Typography>
+					<Box sx={{ flexGrow: 0 }}>
+						<IconButton onClick={() => {
+							saveSetting({
+								...setting,
+								darkMode: !setting.darkMode,
+							});
+						}}>
+							{setting.darkMode ? <DarkMode/> : <LightMode/>}
+						</IconButton>
+					</Box>
 				</Toolbar>
 			</AppBar>
 		</HideOnScroll>
