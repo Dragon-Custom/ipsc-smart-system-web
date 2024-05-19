@@ -7,7 +7,8 @@ export const runtime = "edge";
 export const preferredRegion = "auto";
 import { Query, QueryShooterStatisticArgs } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
-import { Chip, Divider, Grid, Paper, Stack, Typography } from "@mui/material";
+import { Chip, Divider, Grid, Paper, Stack, Typography, useTheme } from "@mui/material";
+import { PieChart, PieValueType } from "@mui/x-charts";
 import { useParams } from "next/navigation";
 import React from "react";
 
@@ -48,7 +49,20 @@ const FetchQuery = gql`
 	}
 `;
 
+const PieChartBlock = (props: {
+	title: string;
+	children: React.ReactNode;
+}) => {
+	return <Grid item xs={12} md={6}>
+		<Paper elevation={2} sx={{ p: 2 }}>
+			<Typography variant="h6" textAlign={"center"}>{props.title}</Typography>
+			{props.children}
+		</Paper>
+	</Grid>;
+};
+
 export default function ShooterStatisticPage() {
+	
 	const params = useParams();
 	const id = parseInt(params.id as string);
 	if (isNaN(id))
@@ -62,6 +76,71 @@ export default function ShooterStatisticPage() {
 		fetchPolicy: "no-cache",
 	});
 
+	const theme = useTheme();
+
+	const hitZoneData: PieValueType[] = React.useMemo(() => {
+		const data: PieValueType[] = [
+			{
+				id: 1,
+				label: "Alpha",
+				value: query.data?.shooterStatistic?.alphaCount ?? 0,
+				color: theme.palette.success[theme.palette.mode],
+			},
+			{
+				id: 2,
+				label: "Charlie",
+				value: query.data?.shooterStatistic?.charlieCount ?? 0,
+				color: theme.palette.primary[theme.palette.mode],
+			},
+			{
+				id: 3,
+				label: "Delta",
+				value: query.data?.shooterStatistic?.deltaCount ?? 0,
+				color: theme.palette.secondary[theme.palette.mode],
+			},
+			{
+				id: 4,
+				label: "Miss",
+				value: query.data?.shooterStatistic?.missCount ?? 0,
+				color: theme.palette.warning[theme.palette.mode],
+			},
+			{
+				id: 5,
+				label: "No Shoot",
+				value: query.data?.shooterStatistic?.noShootCount ?? 0,
+				color: theme.palette.error[theme.palette.mode],
+			},
+		];
+		return data;
+	}, [query]);
+	const totalZoneData = React.useMemo(() => hitZoneData.map((item) => item.value).reduce((a, b) => a + b, 0), [hitZoneData]);
+
+	const scoreDistributionData: PieValueType[] = React.useMemo(() => {
+		const data: PieValueType[] = [
+			{
+				id: 1,
+				label: "Finished",
+				value: query.data?.shooterStatistic?.finishedCount ?? 0,
+				color: theme.palette.success[theme.palette.mode],
+			},
+			{
+				id: 2,
+				label: "DNF",
+				value: query.data?.shooterStatistic?.dnfCount ?? 0,
+				color: theme.palette.warning[theme.palette.mode],
+			},
+			{
+				id: 3,
+				label: "DQ",
+				value: query.data?.shooterStatistic?.dqCount ?? 0,
+				color: theme.palette.error[theme.palette.mode],
+			},
+		];
+		return data;
+	}, [query]);
+	const totalScoreData = React.useMemo(() => scoreDistributionData.map((item) => item.value).reduce((a, b) => a + b, 0), [scoreDistributionData]);
+
+
 	if (query.loading || !query.data) {
 		return <>Loading...</>;
 	}
@@ -71,7 +150,7 @@ export default function ShooterStatisticPage() {
 	return (
 		<>
 			<Grid container>
-				<Grid item md={4} sm={6} xs={12}>
+				<Grid item md={4} sm={6} xs={12} spacing={2}>
 					<Paper elevation={2} sx={{p: 2}}>
 						<Typography variant="h4" textAlign={"center"}>{data.shooter?.name}</Typography>
 					</Paper>
@@ -98,8 +177,37 @@ export default function ShooterStatisticPage() {
 						</Stack>
 					</Paper>
 				</Grid>
-				<Grid item md={8} sm={6} xs={12}>
-					
+				<Grid item container md={8} sm={6} xs={12} spacing={2}>
+					<PieChartBlock title="Hit Zone Distribution">
+						<PieChart
+							series={[{
+								data: hitZoneData,
+								arcLabel(params) {
+									const percent = params.value / totalZoneData;
+									if (percent === 0)
+										return "";
+									return `${(percent * 100).toFixed(0)}%`;
+								},
+							}]}
+							// // margin={{ right: 5 }}
+							height={200}
+						/>
+					</PieChartBlock>
+					<PieChartBlock title="Run-up Distribution">
+						<PieChart
+							series={[{
+								data: scoreDistributionData,
+								arcLabel(params) {
+									const percent = params.value / totalScoreData;
+									if (percent === 0)
+										return "";
+									return `${(percent * 100).toFixed(0)}%`;
+								},
+							}]}
+							// // margin={{ right: 5 }}
+							height={200}
+						/>
+					</PieChartBlock>
 				</Grid>
 			</Grid>
 		</>

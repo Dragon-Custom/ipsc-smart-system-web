@@ -23,6 +23,7 @@
         "@mui/icons-material": "^5.15.12",
         "@mui/material": "^5.15.12",
         "@mui/material-nextjs": "^5.15.11",
+        "@mui/x-charts": "^7.5.0",
         "@uidotdev/usehooks": "^2.4.1",
         "ag-grid-react": "^31.2.0",
         "graphql-sse": "^2.5.3",
