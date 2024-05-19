@@ -475,6 +475,25 @@ export type Shooter = Node & {
   scores?: Maybe<Array<Maybe<Score>>>;
 };
 
+export type ShooterStatistic = {
+  __typename?: 'ShooterStatistic';
+  alphaCount: Scalars['Float']['output'];
+  averageAccuracy: Scalars['Float']['output'];
+  averageHitFactor: Scalars['Float']['output'];
+  charlieCount: Scalars['Float']['output'];
+  deltaCount: Scalars['Float']['output'];
+  dnfCount: Scalars['Float']['output'];
+  dqCount: Scalars['Float']['output'];
+  finishedCount: Scalars['Float']['output'];
+  highestAccuracy: Scalars['Float']['output'];
+  highestHitFactor: Scalars['Float']['output'];
+  missCount: Scalars['Float']['output'];
+  noShootCount: Scalars['Float']['output'];
+  proErrorCount: Scalars['Float']['output'];
+  runCount: Scalars['Float']['output'];
+  shooterId: Scalars['Int']['output'];
+};
+
 export type ShootersFilter = {
   id?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
 };
@@ -525,6 +544,16 @@ export enum StageType {
   Short = 'Short',
   Unsanctioned = 'Unsanctioned'
 }
+
+export type Subscription = {
+  __typename?: 'Subscription';
+  scoreboardsChange?: Maybe<Scalars['Boolean']['output']>;
+  scorelistsChange?: Maybe<Scalars['Boolean']['output']>;
+  scoresChange?: Maybe<Scalars['Boolean']['output']>;
+  shootersChange?: Maybe<Scalars['Boolean']['output']>;
+  stageTagsChange?: Maybe<Scalars['Boolean']['output']>;
+  stagesChange?: Maybe<Scalars['Boolean']['output']>;
+};
 
 export type TagOnStage = Node & {
   __typename?: 'TagOnStage';
