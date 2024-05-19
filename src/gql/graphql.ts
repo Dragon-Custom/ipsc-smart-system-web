@@ -298,6 +298,7 @@ export type Query = {
   scorelist?: Maybe<Scorelist>;
   scorelists?: Maybe<Array<Maybe<Scorelist>>>;
   shooter?: Maybe<Shooter>;
+  shooterStatistic?: Maybe<ShooterStatistic>;
   shooters: Array<Maybe<Shooter>>;
   stage?: Maybe<Stage>;
   stageTag?: Maybe<StageTag>;
@@ -358,6 +359,11 @@ export type QueryScorelistArgs = {
 
 export type QueryShooterArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryShooterStatisticArgs = {
+  shooterId: Scalars['Int']['input'];
 };
 
 
