@@ -9,16 +9,16 @@ const NEXT_CONFIG = {
 	experimental: {
 		runtime: "edge", // 'node.js' (default) | experimental-edge
 	},
-	async redirects() {
-		return [
-			{
-				source: "/api/:path*",
-				destination: `${process.env.NEXT_PUBLIC_API_ENDPOINT}/:path*`,
-				permanent: true,
-			},
-		];
-	},
-	skipTrailingSlashRedirect: true,
+	// async redirects() {
+	// 	return [
+	// 		{
+	// 			source: "/api/:path*",
+	// 			destination: `${process.env.NEXT_PUBLIC_API_ENDPOINT}/:path*`,
+	// 			permanent: true,
+	// 		},
+	// 	];
+	// },
+	// skipTrailingSlashRedirect: true,
 };
 
 export default NEXT_CONFIG;
