@@ -8,7 +8,7 @@ export const preferredRegion = "auto";
 import { Query, QueryShooterStatisticArgs } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { Chip, Divider, Grid, Paper, Stack, Typography, useTheme } from "@mui/material";
-import { PieChart, PieValueType } from "@mui/x-charts";
+import { LineChart, PieChart, PieValueType } from "@mui/x-charts";
 import { useParams } from "next/navigation";
 import React from "react";
 
@@ -56,6 +56,15 @@ const PieChartBlock = (props: {
 	return <Grid item xs={12} md={6}>
 		<Paper elevation={2} sx={{ p: 2 }}>
 			<Typography variant="h6" textAlign={"center"}>{props.title}</Typography>
+			{props.children}
+		</Paper>
+	</Grid>;
+};
+const LineChartBlock = (props: {
+	children: React.ReactNode;
+}) => {
+	return <Grid item xs={12}>
+		<Paper elevation={2} sx={{ p: 2 }}>
 			{props.children}
 		</Paper>
 	</Grid>;
@@ -141,6 +150,34 @@ export default function ShooterStatisticPage() {
 	const totalScoreData = React.useMemo(() => scoreDistributionData.map((item) => item.value).reduce((a, b) => a + b, 0), [scoreDistributionData]);
 
 
+	const ratingChartData: {
+		label: string[];
+		data: number[];
+	} | undefined = React.useMemo(() => {
+		const labels = query.data?.shooter?.ratings?.map((item) => {
+			const date = new Date(item?.createAt);
+			return `${date.toLocaleDateString()}-${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+			// return date;
+		}) ?? [];
+		const datas = query.data?.shooter?.ratings?.map((item) => item?.rating ?? 0) ?? [];
+
+		return {
+			label: labels,
+			data: datas,
+		};
+	}, [query]);
+
+
+	// #region this block of code can trigger the React rerender
+	// by default the data won't show up in the first render, so we need to force update it
+	const [, forceUpdate] = React.useReducer(x => x + 1, 0);
+	const ref = React.useRef<HTMLDivElement>(null);
+	React.useEffect(() => {
+		setTimeout(() => forceUpdate(), 100);
+	}, [ref,query]);
+	// #endregion
+
+
 	if (query.loading || !query.data) {
 		return <>Loading...</>;
 	}
@@ -149,14 +186,13 @@ export default function ShooterStatisticPage() {
 
 	return (
 		<>
-			<Grid container>
-				<Grid item md={4} sm={6} xs={12} spacing={2}>
+			<Grid container spacing={2}>
+				<Grid item md={4} sm={6} xs={12} >
 					<Paper elevation={2} sx={{p: 2}}>
 						<Typography variant="h4" textAlign={"center"}>{data.shooter?.name}</Typography>
 					</Paper>
 					<Paper elevation={10} sx={{p: 2}}>
 						<Stack>
-							{/*TODO : reimplement the statis */}
 							<Divider><Chip variant="outlined" label="Current" /></Divider>
 							<Typography variant="subtitle1">Current Ranking: {`#${data.shooter?.rankings?.[data.shooter?.rankings.length - 1]?.rank ?? 0}`}</Typography>
 							<Typography variant="subtitle1">Current Rating: {`${(data.shooter?.ratings?.[data.shooter?.ratings.length - 1]?.rating ?? 0).toFixed(2)}`}</Typography>
@@ -177,7 +213,35 @@ export default function ShooterStatisticPage() {
 						</Stack>
 					</Paper>
 				</Grid>
-				<Grid item container md={8} sm={6} xs={12} spacing={2}>
+				<Grid item container md={8} sm={6} xs={12} spacing={1}>
+					<LineChartBlock>
+						<LineChart
+							title="Rating vs Time"
+							yAxis={[{
+								scaleType: "linear",
+							}]}
+							height={400}
+							series={[
+								{
+									data: ratingChartData.data,
+									connectNulls: true,
+									curve: "monotoneX",
+									label: "Rating",
+								},
+							]}
+							xAxis={[{
+								scaleType: "point",
+								data: ratingChartData.label,
+								label: "Time",
+							}]}
+							grid={{ vertical: true, horizontal: true }}
+							axisHighlight={{
+								x: "line",
+								y: "line",
+							}}
+							ref={ref}
+						/>
+					</LineChartBlock>
 					<PieChartBlock title="Hit Zone Distribution">
 						<PieChart
 							series={[{
@@ -189,8 +253,8 @@ export default function ShooterStatisticPage() {
 									return `${(percent * 100).toFixed(0)}%`;
 								},
 							}]}
-							// // margin={{ right: 5 }}
 							height={200}
+							
 						/>
 					</PieChartBlock>
 					<PieChartBlock title="Run-up Distribution">
@@ -204,7 +268,6 @@ export default function ShooterStatisticPage() {
 									return `${(percent * 100).toFixed(0)}%`;
 								},
 							}]}
-							// // margin={{ right: 5 }}
 							height={200}
 						/>
 					</PieChartBlock>
