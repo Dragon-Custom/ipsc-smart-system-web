@@ -257,7 +257,7 @@ export default function ShooterStatisticPage() {
 							
 						/>
 					</PieChartBlock>
-					<PieChartBlock title="Run-up Distribution">
+					<PieChartBlock title="Result Distribution">
 						<PieChart
 							series={[{
 								data: scoreDistributionData,
