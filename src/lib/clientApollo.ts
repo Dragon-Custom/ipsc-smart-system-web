@@ -15,7 +15,6 @@ import { Client, ClientOptions, createClient } from "graphql-sse";
 /* #region create Websocket link for subscription */
 const httpLink = new HttpLink({
 	uri: location.origin + "/api/graphql",
-		
 });
 
 class SSELink extends ApolloLink {
