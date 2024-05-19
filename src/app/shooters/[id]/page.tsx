@@ -5,31 +5,42 @@ export const revalidate = false;
 export const fetchCache = "auto";
 export const runtime = "edge";
 export const preferredRegion = "auto";
-import { Query, ScoreState } from "@/gql/graphql";
+import { Query, QueryShooterStatisticArgs } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { Chip, Divider, Grid, Paper, Stack, Typography } from "@mui/material";
 import { useParams } from "next/navigation";
 import React from "react";
 
 const FetchQuery = gql`
-	query ($id: Int!) {
-		shooter(id: $ids) {
-			id
-			createAt
+	query ShooterStatistic($shooterId: Int!) {
+		shooterStatistic(shooterId: $shooterId) {
+			shooterId
+			averageHitFactor
+			averageAccuracy
+			runCount
+			finishedCount
+			proErrorCount
+			dnfCount
+			dqCount
+			highestHitFactor
+			highestAccuracy
+			alphaCount
+			charlieCount
+			deltaCount
+			missCount
+			noShootCount
+		}
+		shooter(id: $shooterId) {
 			name
-			division
-			email
-			rankings {
+			ratings {
 				id
-				shooterId
-				rank
+				rating
 				updatedAt
 				createAt
 			}
-			ratings {
+			rankings {
 				id
-				shooterId
-				rating
+				rank
 				updatedAt
 				createAt
 			}
@@ -44,9 +55,9 @@ export default function ShooterStatisticPage() {
 		// eslint-disable-next-line react/no-unescaped-entities
 		return <>ERROR: you've passed a illegle shooter id</>;
 	
-	const query = useQuery<Query>(FetchQuery, {
+	const query = useQuery<Query, QueryShooterStatisticArgs>(FetchQuery, {
 		variables: {
-			id,
+			shooterId:id,
 		},
 		fetchPolicy: "no-cache",
 	});
@@ -67,22 +78,23 @@ export default function ShooterStatisticPage() {
 					<Paper elevation={10} sx={{p: 2}}>
 						<Stack>
 							{/*TODO : reimplement the statis */}
-							{/* <Divider><Chip label="Current" /></Divider>
-							<Typography variant="subtitle1">Current Ranking: {`#${data.shooter?.rankings[0]?.rank ?? 0}`}</Typography>
-							<Typography variant="subtitle1">Current Rating: {`${(data.shooter?.ratings?.[0]?.rating ?? 0).toFixed(2)}`}</Typography>
+							<Divider><Chip variant="outlined" label="Current" /></Divider>
+							<Typography variant="subtitle1">Current Ranking: {`#${data.shooter?.rankings?.[data.shooter?.rankings.length - 1]?.rank ?? 0}`}</Typography>
+							<Typography variant="subtitle1">Current Rating: {`${(data.shooter?.ratings?.[data.shooter?.ratings.length - 1]?.rating ?? 0).toFixed(2)}`}</Typography>
 							<Typography variant="caption" color={"InactiveCaptionText"}>Rating represented the shooter performance</Typography>
-							<Typography variant="overline" fontSize={"10px"} color={"GrayText"}>Rating = (avg_acc)*(avg_hitfactor)+(sum_score/sum_time)</Typography>
-							<Divider><Chip label="Average" /></Divider>
-							<Typography variant="subtitle1">Average Hit Factor: {(data.aggregateScore?._avg?.hitFactor ?? 0).toFixed(2)}</Typography>
-							<Typography variant="subtitle1">Average Accuracy: {`${((data.aggregateScore?._avg?.accuracy ?? 0)).toFixed(2)}%`}</Typography>
-							<Divider><Chip label="Overall" /></Divider>
-							<Typography variant="subtitle1">Run Count: {runCount}</Typography>
-							<Typography variant="subtitle1">Finished Count: {finishedCount}</Typography>
-							<Typography variant="subtitle1">Pro Error Count: {proErrorCount}</Typography>
-							<Typography variant="subtitle1">DNF Count: {dnfCount}</Typography>
-							<Typography variant="subtitle1">DQ Count: {dqCount}</Typography>
-							<Divider><Chip label="Peak" /></Divider>
-							<Typography variant="subtitle1">Highest Hit Factor: 10.00</Typography> */}
+							<Typography variant="overline" fontSize={"10px"} color={"GrayText"}> s = sum of score, t = sum of  time, k = s/t, a = avg acc, h= avg hit factor, rating(k) = ak^2+hk</Typography>
+							<Divider><Chip variant="outlined" label="Average" /></Divider>
+							<Typography variant="subtitle1">Average Hit Factor: {(data.shooterStatistic?.averageHitFactor ?? 0).toFixed(3)}</Typography>
+							<Typography variant="subtitle1">Average Accuracy: {`${(data.shooterStatistic?.averageAccuracy ?? 0).toFixed(2)}%`}</Typography>
+							<Divider><Chip variant="outlined" label="Overall" /></Divider>
+							<Typography variant="subtitle1">Run Count: {data.shooterStatistic?.runCount ?? 0}</Typography>
+							<Typography variant="subtitle1">Finished Count: {data.shooterStatistic?.finishedCount ?? 0}</Typography>
+							<Typography variant="subtitle1">Pro Error Count: {data.shooterStatistic?.proErrorCount ?? 0}</Typography>
+							<Typography variant="subtitle1">DNF Count: {data.shooterStatistic?.dnfCount ?? 0}</Typography>
+							<Typography variant="subtitle1">DQ Count: {data.shooterStatistic?.dqCount ?? 0}</Typography>
+							<Divider><Chip variant="outlined" label="Peak" /></Divider>
+							<Typography variant="subtitle1">Highest Hit Factor: {(data.shooterStatistic?.highestHitFactor ?? 0).toFixed(3)}</Typography>
+							<Typography variant="subtitle1">Highest Accuracy: {`${(data.shooterStatistic?.highestAccuracy ?? 0).toFixed(2)}%`}</Typography>
 						</Stack>
 					</Paper>
 				</Grid>
