@@ -87,7 +87,7 @@ async function uploadImage(base64url: string): Promise<ImageID> {
 		redirect: "follow",
 	};
 
-	const response = await (await fetch(location.origin + "/api/graphql", requestOptions as RequestInit)).json();
+	const response = await (await fetch(process.env.NEXT_PUBLIC_GRAPHQLAPI_ENDPOINT, requestOptions as RequestInit)).json();
 	return response.data.uploadImage;
 }
 export interface StageFormDialogProps {
