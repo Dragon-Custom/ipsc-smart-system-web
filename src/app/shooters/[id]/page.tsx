@@ -252,9 +252,11 @@ export default function ShooterStatisticPage() {
 										return "";
 									return `${(percent * 100).toFixed(0)}%`;
 								},
+								arcLabelMinAngle: 30,
+								highlightScope: { faded: "series", highlighted: "item" },
+								faded: { innerRadius: 10, additionalRadius: -30, color: "gray" },
 							}]}
 							height={200}
-							
 						/>
 					</PieChartBlock>
 					<PieChartBlock title="Result Distribution">
@@ -267,6 +269,9 @@ export default function ShooterStatisticPage() {
 										return "";
 									return `${(percent * 100).toFixed(0)}%`;
 								},
+								arcLabelMinAngle: 30,
+								highlightScope: { faded: "series", highlighted: "item" },
+								faded: { innerRadius: 10, additionalRadius: -30, color: "gray" },
 							}]}
 							height={200}
 						/>
