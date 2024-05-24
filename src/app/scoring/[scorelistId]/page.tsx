@@ -35,7 +35,7 @@ import {
 	useTheme,
 } from "@mui/material";
 import { AgGridReact } from "ag-grid-react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import React from "react";
 import { ColDef, RowClickedEvent, RowDragEndEvent } from "@ag-grid-community/core";
 import JoinShooterDialog from "./joinShooterDialog";
@@ -145,6 +145,7 @@ export default function ScorelistPage() {
 	const params = useParams();
 	const id = parseInt(params.scorelistId as string);
 	if (isNaN(id)) return <>Error: youve pass a invaild scorelist id</>;
+	const searchParams = useSearchParams();
 	const router = useRouter();
 	const theme = useTheme();
 	const [updateScorelist] = useMutation<Mutation["addRoundsToScorelist"], MutationAddRoundsToScorelistArgs>(AddRoundToScorelistMutation);
@@ -227,6 +228,20 @@ export default function ScorelistPage() {
 		setJoinShooterDialogOpem(false);
 	}
 
+	function updateURL() {
+		const current = new URLSearchParams(Array.from(searchParams.entries()));
+		if (selectedRound == 0) {
+			current.delete("round");
+		} else {
+			current.set("round",selectedRound.toString());
+		}
+		// cast to string
+		const search = current.toString();
+		// or const query = `${'?'.repeat(search.length && 1)}${search}`;
+		const query = search ? `?${search}` : "";
+
+		router.push(`${location.pathname}${query}`);
+	}
 	//TODO refactor swap
 	const [ swap ] = useMutation<Mutation["swapScoresId"], MutationSwapScoresIdArgs>(SwapMutation);
 	const onRowDragEnd = React.useCallback((event: RowDragEndEvent<ScoreItem>) => {
@@ -294,12 +309,21 @@ export default function ScorelistPage() {
 
 	// #endregion
 	React.useEffect(() => {
+		updateURL();
 		refreshGrid();
 		setTimeout(() => autoSizeAll(false), 500);
 	}, [selectedRound, query, enableOrdering]);
 	React.useEffect(() => {		
 		setTimeout(() => autoSizeAll(false), 1000);
 	}, [gridRef]);
+	React.useEffect(() => {
+		const round = parseInt(searchParams.get("round") || "0");
+		if (!isNaN(round)) {
+			setSelectedRound(round);
+		} else {
+			setSelectedRound(0);
+		}
+	}, []);
 
 	const getRowStyle = (params: RowClassParams<ScoreItem>) => {
 		switch (params.data?.State) {
