@@ -15,4 +15,9 @@ const NEXT_CONFIG = {
 
 // non million lin setup
 // export default NEXT_CONFIG;
-export default MillionLint.next({ rsc: true, skipTransform: false})(NEXT_CONFIG);
+export default MillionLint.next({
+	rsc: true,
+	skipTransform: true,
+	optimizeDOM: true,
+	
+})(NEXT_CONFIG);
