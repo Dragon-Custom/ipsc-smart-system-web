@@ -16,7 +16,7 @@ import "@fontsource/roboto/700.css";
 import "ag-grid-community/styles/ag-grid.css"; // Mandatory CSS required by the grid
 import "ag-grid-community/styles/ag-theme-alpine.css"; // Optional Theme applied to the grid
 import GlobalLayoutAppBar from "@/components/GlobalLayout/GlobalLayoutAppBar";
-import { Paper, Stack, ThemeProvider, Toolbar, createTheme, useMediaQuery } from "@mui/material";
+import { Paper, Stack, ThemeProvider, Toolbar, createTheme } from "@mui/material";
 import { ConfirmProvider } from "material-ui-confirm";
 import GlobalLayoutSideBar from "@/components/GlobalLayout/GlobalLayoutSideBar";
 import { ApolloProvider } from "@apollo/client";
@@ -45,12 +45,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
 	const [sideBarState, dispatch] = React.useReducer(sideBarReducer, false);
-	const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
-	const { setting} = useLocalSetting();
-
-	const mode = React.useMemo(() => {
-		return prefersDarkMode ? "dark" : "light";
-	}, [prefersDarkMode]);
+	const { setting } = useLocalSetting();
 
 	const THEME = createTheme({
 		palette: {
