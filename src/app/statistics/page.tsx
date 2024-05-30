@@ -2,7 +2,7 @@
 import { PieChartBlock } from "@/components/PieChartBlock";
 import { Query, QueryGlobalStatisticArgs } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
-import { Box, Button, Checkbox, Chip, Divider, FormControl, Grid, InputLabel, ListItemText, MenuItem, OutlinedInput, Paper, Select, SelectChangeEvent, Stack, Typography, useTheme } from "@mui/material";
+import { Box, Checkbox, Chip, Divider, FormControl, Grid, InputLabel, ListItemText, MenuItem, OutlinedInput, Paper, Select, SelectChangeEvent, Stack, Typography, useTheme } from "@mui/material";
 import { PieChart, PieValueType } from "@mui/x-charts";
 import React, { Suspense } from "react";
 
