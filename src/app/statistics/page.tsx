@@ -1,7 +1,9 @@
 "use client";
+import { PieChartBlock } from "@/components/PieChartBlock";
 import { Query, QueryGlobalStatisticArgs } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
-import { Box, Button, Checkbox, Chip, Divider, FormControl, Grid, InputLabel, ListItemText, MenuItem, OutlinedInput, Paper, Select, SelectChangeEvent, Stack, Typography } from "@mui/material";
+import { Box, Button, Checkbox, Chip, Divider, FormControl, Grid, InputLabel, ListItemText, MenuItem, OutlinedInput, Paper, Select, SelectChangeEvent, Stack, Typography, useTheme } from "@mui/material";
+import { PieChart, PieValueType } from "@mui/x-charts";
 import React, { Suspense } from "react";
 
 
@@ -83,6 +85,44 @@ export default function Statistics() {
 		setStageFilter(event.target.value as number[]);
 	};
 
+	const theme = useTheme();
+
+	const hitZoneData: PieValueType[] = React.useMemo(() => {
+		const data: PieValueType[] = [
+			{
+				id: 1,
+				label: "Alpha",
+				value: query.data?.globalStatistic?.alphaZoneTotal ?? 0,
+				color: theme.palette.success[theme.palette.mode],
+			},
+			{
+				id: 2,
+				label: "Charlie",
+				value: query.data?.globalStatistic?.charlieZoneTotal ?? 0,
+				color: theme.palette.primary[theme.palette.mode],
+			},
+			{
+				id: 3,
+				label: "Delta",
+				value: query.data?.globalStatistic?.deltaZoneTotal ?? 0,
+				color: theme.palette.secondary[theme.palette.mode],
+			},
+			{
+				id: 4,
+				label: "Miss",
+				value: query.data?.globalStatistic?.missTotal ?? 0,
+				color: theme.palette.warning[theme.palette.mode],
+			},
+			{
+				id: 5,
+				label: "No Shoot",
+				value: query.data?.globalStatistic?.noShootTotal ?? 0,
+				color: theme.palette.error[theme.palette.mode],
+			},
+		];
+		return data;
+	}, [query]);
+	const totalZoneData = React.useMemo(() => hitZoneData.map((item) => item.value).reduce((a, b) => a + b, 0), [hitZoneData]);
 
 	
 	return (
@@ -174,22 +214,43 @@ export default function Statistics() {
 										</Select>
 									</FormControl>
 								</Grid>
-								<Grid item xs>
+								{/* <Grid item xs>
 									<Button fullWidth sx={{height: "100%"}} variant="outlined">Apply</Button>
-								</Grid>
+								</Grid> */}
 							</Grid>
 					
 						</Stack>				
 					</Paper>
 					<Paper elevation={3} sx={{ p: 2 }}>
-						<Typography variant="h6">Joined shooter: {data?.globalStatistic?.shootersTotal}</Typography>
-						<Typography variant="h6">Total scored stages: {data?.globalStatistic?.stagesTotal}</Typography>
-						<Typography variant="h6">Total DQ: {data?.globalStatistic?.dqTotal}</Typography>
-						<Typography variant="h6">Total DNF: {data?.globalStatistic?.dnfTotal}</Typography>
-						<Typography variant="h6">Total pro errors: {data?.globalStatistic?.proErrorTotal}</Typography>
-						<Typography variant="h6">Total completed: {data?.globalStatistic?.finishedTotal}</Typography>
-						<Typography variant="h6">Average hit-factor: {data?.globalStatistic?.averageHitFactor?.toFixed(3)}</Typography>
-						<Typography variant="h6">Average accuracy: {`${data?.globalStatistic?.averageAccuracy?.toFixed(2)}%`}</Typography>
+						<Grid container>
+							<Grid item xs={12} sm={6}>
+								<Typography variant="h6">Joined shooter: {data?.globalStatistic?.shootersTotal}</Typography>
+								<Typography variant="h6">Total scored stages: {data?.globalStatistic?.stagesTotal}</Typography>
+								<Typography variant="h6">Total DQ: {data?.globalStatistic?.dqTotal}</Typography>
+								<Typography variant="h6">Total DNF: {data?.globalStatistic?.dnfTotal}</Typography>
+								<Typography variant="h6">Total pro errors: {data?.globalStatistic?.proErrorTotal}</Typography>
+								<Typography variant="h6">Total completed: {data?.globalStatistic?.finishedTotal}</Typography>
+								<Typography variant="h6">Average hit-factor: {data?.globalStatistic?.averageHitFactor?.toFixed(3)}</Typography>
+								<Typography variant="h6">Average accuracy: {`${data?.globalStatistic?.averageAccuracy?.toFixed(2)}%`}</Typography>
+							</Grid>
+							<PieChartBlock title="Hit zones ratio" xs>
+								<PieChart
+									series={[{
+										data: hitZoneData,
+										arcLabel(params) {
+											const percent = params.value / totalZoneData;
+											if (percent === 0)
+												return "";
+											return `${(percent * 100).toFixed(0)}%`;
+										},
+										arcLabelMinAngle: 30,
+										highlightScope: { faded: "series", highlighted: "item" },
+										faded: { innerRadius: 10, additionalRadius: -30, color: "gray" },
+									}]}
+									height={200}
+								/>
+							</PieChartBlock>
+						</Grid>
 					</Paper>
 				</Stack>
 			</Suspense>

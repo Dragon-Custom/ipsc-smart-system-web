@@ -5,6 +5,7 @@ export const revalidate = false;
 export const fetchCache = "auto";
 export const runtime = "edge";
 export const preferredRegion = "auto";
+import { PieChartBlock } from "@/components/PieChartBlock";
 import { Query, QueryShooterStatisticArgs } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { Chip, Divider, Grid, Paper, Stack, Typography, useTheme } from "@mui/material";
@@ -48,18 +49,6 @@ const FetchQuery = gql`
 		}
 	}
 `;
-
-const PieChartBlock = (props: {
-	title: string;
-	children: React.ReactNode;
-}) => {
-	return <Grid item xs={12} md={6}>
-		<Paper elevation={2} sx={{ p: 2 }}>
-			<Typography variant="h6" textAlign={"center"}>{props.title}</Typography>
-			{props.children}
-		</Paper>
-	</Grid>;
-};
 const LineChartBlock = (props: {
 	children: React.ReactNode;
 }) => {
