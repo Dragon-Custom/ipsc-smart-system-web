@@ -37,7 +37,5 @@ next-env.d.ts
 
 .env
 
-
-.vscode
-# Million Lint
 .million
+.vscode
