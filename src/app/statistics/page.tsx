@@ -4,6 +4,7 @@ import { Query, QueryGlobalStatisticArgs } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { Box, Checkbox, Chip, Divider, FormControl, Grid, InputLabel, ListItemText, MenuItem, OutlinedInput, Paper, Select, SelectChangeEvent, Stack, Typography, useTheme } from "@mui/material";
 import { PieChart, PieValueType } from "@mui/x-charts";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { Suspense } from "react";
 
 
@@ -64,12 +65,46 @@ export default function Statistics() {
 		},
 	});
 	const data = React.useDeferredValue(query.data);
+	const searchParams = useSearchParams();
+	const router = useRouter();
+
+	function updateURL(params: string, value: string) {
+		const current = new URLSearchParams(Array.from(searchParams.entries()));
+		if (value == "") {
+			current.delete(params);
+		} else {
+			current.set(params,value);
+		}
+		// cast to string
+		const search = current.toString();
+		// or const query = `${'?'.repeat(search.length && 1)}${search}`;
+		const query = search ? `?${search}` : "";
+
+		router.push(`${location.pathname}${query}`);
+	}
+
+	React.useEffect(() => {
+		const scoreboard = searchParams.get("scoreboard");
+		if (scoreboard) {
+			setScoreboardFilter(JSON.parse(scoreboard));
+		}
+		const scorelist = searchParams.get("scorelist");
+		if (scorelist) {
+			setScorelistFilter(JSON.parse(scorelist));
+		}
+		const stage = searchParams.get("stage");
+		if (stage) {
+			setStageFilter(JSON.parse(stage));
+		}
+	}, []);
 
 	const handleScoreboardFilterChange = (event: SelectChangeEvent<typeof scoreboardFilter>) => {
 		setScoreboardFilter(event.target.value as number[]);
+		updateURL("scoreboard", JSON.stringify(event.target.value));
 	};
 	const handleScorelistFilterChange = (event: SelectChangeEvent<typeof scorelistFilter>) => {
 		setScorelistFilter(event.target.value as number[]);
+		updateURL("scorelist", JSON.stringify(event.target.value));
 	};
 	const scorelistFilterNames = React.useMemo(() => {
 		const names: string[] = [];
@@ -83,6 +118,7 @@ export default function Statistics() {
 	}, [scorelistFilter]);
 	const handleStageFilterChange = (event: SelectChangeEvent<typeof stageFilter>) => {
 		setStageFilter(event.target.value as number[]);
+		updateURL("stage", JSON.stringify(event.target.value));
 	};
 
 	const theme = useTheme();
@@ -181,7 +217,7 @@ export default function Statistics() {
 												if (!scorelist)
 													return;
 												return <MenuItem key={scorelist.id} value={scorelist.id}>
-													<Checkbox checked={scoreboardFilter.findIndex((id) => id === scorelist.id) > -1} />
+													<Checkbox checked={scorelistFilter.findIndex((id) => id === scorelist.id) > -1} />
 													<ListItemText primary={`${new Date(scorelist.createAt).toLocaleDateString()} ${scorelist.stage.name}`} />
 												</MenuItem>;
 											})}
