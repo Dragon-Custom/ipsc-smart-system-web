@@ -92,6 +92,33 @@ export type DqObjectsFilterInput = {
   index?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
+export type GlobalStatistic = {
+  __typename?: 'GlobalStatistic';
+  alphaZoneTotal?: Maybe<Scalars['Int']['output']>;
+  averageAccuracy?: Maybe<Scalars['Float']['output']>;
+  averageHitFactor?: Maybe<Scalars['Float']['output']>;
+  charlieZoneTotal?: Maybe<Scalars['Int']['output']>;
+  deltaZoneTotal?: Maybe<Scalars['Int']['output']>;
+  dnfTotal?: Maybe<Scalars['Int']['output']>;
+  dqTotal?: Maybe<Scalars['Int']['output']>;
+  finishedTotal?: Maybe<Scalars['Int']['output']>;
+  missTotal?: Maybe<Scalars['Int']['output']>;
+  noShootTotal?: Maybe<Scalars['Int']['output']>;
+  popperTotal?: Maybe<Scalars['Int']['output']>;
+  proErrorTotal?: Maybe<Scalars['Int']['output']>;
+  /** The run count of all shooter */
+  runsTotal?: Maybe<Scalars['Int']['output']>;
+  /** The number of shooter that join in */
+  shootersTotal?: Maybe<Scalars['Int']['output']>;
+  stagesTotal?: Maybe<Scalars['Int']['output']>;
+};
+
+export type GlobalStatisticFilterInputType = {
+  scoreboardId?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
+  scorelistId?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
+  stageId?: InputMaybe<Array<InputMaybe<Scalars['Int']['input']>>>;
+};
+
 export type Image = {
   __typename?: 'Image';
   id: Scalars['ID']['output'];
@@ -287,6 +314,7 @@ export type Query = {
   __typename?: 'Query';
   dqObject?: Maybe<DqObject>;
   dqObjects?: Maybe<Array<Maybe<DqObject>>>;
+  globalStatistic?: Maybe<GlobalStatistic>;
   historyRating?: Maybe<Array<Maybe<Rating>>>;
   image?: Maybe<Scalars['FileOutput']['output']>;
   proErrorObject?: Maybe<ProErrorObject>;
@@ -314,6 +342,11 @@ export type QueryDqObjectArgs = {
 
 export type QueryDqObjectsArgs = {
   filter?: InputMaybe<DqObjectsFilterInput>;
+};
+
+
+export type QueryGlobalStatisticArgs = {
+  filter?: InputMaybe<GlobalStatisticFilterInputType>;
 };
 
 
