@@ -457,12 +457,12 @@ export type Score = Node & {
   id: Scalars['Int']['output'];
   misses: Scalars['Int']['output'];
   noshoots: Scalars['Int']['output'];
-  overallPrecentage: Scalars['Float']['output'];
+  overallPercentage: Scalars['Float']['output'];
   poppers: Scalars['Int']['output'];
   proErrorCount: Scalars['Int']['output'];
   proErrors?: Maybe<Array<Maybe<ProErrorStore>>>;
   round: Scalars['Int']['output'];
-  roundPrecentage: Scalars['Float']['output'];
+  roundPercentage: Scalars['Float']['output'];
   score: Scalars['Int']['output'];
   scorelist: Scorelist;
   scorelistId: Scalars['Int']['output'];

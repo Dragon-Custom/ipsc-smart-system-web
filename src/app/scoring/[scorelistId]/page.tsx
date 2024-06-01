@@ -75,8 +75,8 @@ const FetchQuery = gql`
 				round
 				accuracy
 				state
-				roundPrecentage
-				overallPrecentage
+				roundPercentage
+				overallPercentage
 				shooter {
 					name
 				}
@@ -134,7 +134,7 @@ interface ScoreItem {
     ProErrors: number;
     Time: number;
     HitFactor: string;
-    Precentage: number;
+    Percentage: number;
     Id: number;
     State: string;
 	Round?: number;
@@ -207,7 +207,7 @@ export default function ScorelistPage() {
 				ProErrors: v.proErrorCount,
 				Time: v.time,
 				HitFactor: parseFloat(v.hitFactor as unknown as string).toFixed(3),
-				Precentage: selectedRound == 0 ? v.overallPrecentage : v.roundPrecentage,
+				Percentage: selectedRound == 0 ? v.overallPercentage : v.roundPercentage,
 				State: v.state,
 				Round: selectedRound == 0 ? v.round : undefined,
 				Accuracy: v.accuracy as number,
@@ -282,7 +282,7 @@ export default function ScorelistPage() {
 		{ field: "ProErrors", minWidth: 100 },
 		{ field: "Time" , valueFormatter: (v) => `${v.value.toFixed(2)}s`},
 		{ field: "HitFactor"},
-		{ field: "Precentage", valueFormatter: (v) => `${v.value.toFixed(1)}%`},
+		{ field: "Percentage", valueFormatter: (v) => `${v.value.toFixed(1)}%`},
 		{ field: "State", hide: true },
 		{ field: "Accuracy", valueFormatter: (v) => `${v.value.toFixed(1)}%`},
 	]);

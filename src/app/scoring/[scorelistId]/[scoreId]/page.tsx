@@ -40,8 +40,8 @@ const FetchQuery = gql`
 			round
 			accuracy
 			state
-			roundPrecentage
-			overallPrecentage
+			roundPercentage
+			overallPercentage
 			shooter {
 				name
 			}
@@ -101,8 +101,8 @@ const UpdateOneScoreMutation = gql`
 			round
 			accuracy
 			state
-			roundPrecentage
-			overallPrecentage
+			roundPercentage
+			overallPercentage
 		}
 	}
 
