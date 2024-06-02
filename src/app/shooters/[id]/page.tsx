@@ -145,36 +145,41 @@ export default function ShooterStatisticPage() {
 	const totalScoreData = React.useMemo(() => scoreDistributionData.map((item) => item.value).reduce((a, b) => a + b, 0), [scoreDistributionData]);
 
 
-	const ratingChartData: {
+	const chartData: {
 		label: string[];
-		data: number[];
+		ratingData: number[];
+		eloData: number[];
 	} | undefined = React.useMemo(() => {
-		const labels = query.data?.shooter?.ratings?.map((item) => {
+		const originalRating = query.data?.shooter?.ratings;
+		originalRating?.toSorted((a, b) => b?.createAt - a?.createAt);
+		const ratingData = originalRating?.map((item) => item?.rating ?? 0) ?? [];
+
+		const originalElo = query.data?.shooter?.elo;
+		originalElo?.toSorted((a, b) => b?.createAt - a?.createAt);
+		const eloData = originalElo?.map((item) => item?.elo ?? 0) ?? [];
+		
+		let longestData: typeof originalElo | typeof originalRating = [];
+		if (ratingData.length > eloData.length)
+			longestData = originalRating || [];
+		else
+			longestData = originalElo || [];
+
+		const outputLabels = longestData?.map((item) => {
 			const date = new Date(item?.createAt);
 			return `${date.toLocaleDateString()}-${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
 		}) ?? [];
-		const datas = query.data?.shooter?.ratings?.map((item) => item?.rating ?? 0) ?? [];
 
+		if (ratingData.length > eloData.length)
+			eloData.push(...Array(ratingData.length - eloData.length).fill(eloData[eloData.length - 1]));
+		else
+			ratingData.push(...Array(eloData.length - ratingData.length).fill(ratingData[ratingData.length - 1]));
+
+		console.log(outputLabels, ratingData, eloData);
+		
 		return {
-			label: labels,
-			data: datas,
-		};
-	}, [query]);
-
-	const eloChartData: {
-		label: string[];
-		data: number[];
-	} | undefined = React.useMemo(() => {
-		console.log(query.data?.shooter);
-		const labels = query.data?.shooter?.elo?.map((item) => {
-			const date = new Date(item?.createAt);
-			return `${date.toLocaleDateString()}-${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
-		}) ?? [];
-		const datas = query.data?.shooter?.elo?.map((item) => item?.elo ?? 0) ?? [];
-
-		return {
-			label: labels,
-			data: datas,
+			label: outputLabels,
+			ratingData: ratingData,
+			eloData: eloData,
 		};
 	}, [query]);
 
@@ -239,14 +244,14 @@ export default function ShooterStatisticPage() {
 							height={400}
 							series={[
 								{
-									data: ratingChartData.data,
+									data: chartData.ratingData,
 									connectNulls: true,
 									curve: "monotoneX",
 									label: "Rating",
 									yAxisKey: "Rating",
 								},
 								{
-									data: eloChartData.data,
+									data: chartData.eloData,
 									connectNulls: true,
 									curve: "linear",
 									label: "Elo",
@@ -261,7 +266,7 @@ export default function ShooterStatisticPage() {
 								{
 									id: "Rating",
 									scaleType: "point",
-									data: ratingChartData.label.length > eloChartData.label.length ? ratingChartData.label : eloChartData.label,
+									data: chartData.label,
 									label: "Time",
 									tickMinStep: 3600 * 1000 * 12,
 								},
