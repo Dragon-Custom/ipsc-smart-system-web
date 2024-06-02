@@ -152,7 +152,6 @@ export default function ShooterStatisticPage() {
 		const labels = query.data?.shooter?.ratings?.map((item) => {
 			const date = new Date(item?.createAt);
 			return `${date.toLocaleDateString()}-${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
-			// return date;
 		}) ?? [];
 		const datas = query.data?.shooter?.ratings?.map((item) => item?.rating ?? 0) ?? [];
 
@@ -162,6 +161,22 @@ export default function ShooterStatisticPage() {
 		};
 	}, [query]);
 
+	const eloChartData: {
+		label: string[];
+		data: number[];
+	} | undefined = React.useMemo(() => {
+		console.log(query.data?.shooter);
+		const labels = query.data?.shooter?.elo?.map((item) => {
+			const date = new Date(item?.createAt);
+			return `${date.toLocaleDateString()}-${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+		}) ?? [];
+		const datas = query.data?.shooter?.elo?.map((item) => item?.elo ?? 0) ?? [];
+
+		return {
+			label: labels,
+			data: datas,
+		};
+	}, [query]);
 
 	// #region this block of code can trigger the React rerender
 	// by default the data won't show up in the first render, so we need to force update it
@@ -212,9 +227,6 @@ export default function ShooterStatisticPage() {
 					<LineChartBlock>
 						<LineChart
 							title="Rating vs Time"
-							yAxis={[{
-								scaleType: "linear",
-							}]}
 							height={400}
 							series={[
 								{
@@ -222,13 +234,28 @@ export default function ShooterStatisticPage() {
 									connectNulls: true,
 									curve: "monotoneX",
 									label: "Rating",
+									yAxisKey: "Rating",
+								},
+								{
+									data: eloChartData.data,
+									connectNulls: true,
+									curve: "linear",
+									label: "Elo",
+									yAxisKey: "Rating",
 								},
 							]}
-							xAxis={[{
-								scaleType: "point",
-								data: ratingChartData.label,
-								label: "Time",
-							}]}
+							yAxis={[
+								{ id: "Rating", scaleType: "pow" },
+							]}
+							leftAxis="Rating"
+							xAxis={[
+								{
+									id: "Rating",
+									scaleType: "point",
+									data: ratingChartData.label.length > eloChartData.label.length ? ratingChartData.label : eloChartData.label,
+									label: "Time",
+								},
+							]}
 							grid={{ vertical: true, horizontal: true }}
 							axisHighlight={{
 								x: "line",
