@@ -208,6 +208,8 @@ export default function ShooterStatisticPage() {
 							<Typography variant="subtitle1">Current Rating: {`${(data.shooter?.ratings?.[data.shooter?.ratings.length - 1]?.rating ?? 0).toFixed(2)}`}</Typography>
 							<Typography variant="caption" color={"InactiveCaptionText"}>Rating represented the shooter performance</Typography>
 							<Typography variant="overline" fontSize={"10px"} color={"GrayText"}> s = sum of score, t = sum of  time, k = s/t, a = avg acc, h= avg hit factor, rating(k) = ak^2+hk</Typography>
+							<Typography variant="subtitle1">Current ELO: {`${(data.shooter?.elo?.[data.shooter?.elo.length - 1]?.elo ?? 0).toFixed(2)}`}</Typography>
+							<Typography variant="caption" color={"InactiveCaptionText"}>ELO represents how a {"shooter's"} performance is compared to other shooters.</Typography>
 							<Divider><Chip variant="outlined" label="Average" /></Divider>
 							<Typography variant="subtitle1">Average Hit Factor: {(data.shooterStatistic?.averageHitFactor ?? 0).toFixed(3)}</Typography>
 							<Typography variant="subtitle1">Average Accuracy: {`${(data.shooterStatistic?.averageAccuracy ?? 0).toFixed(2)}%`}</Typography>
