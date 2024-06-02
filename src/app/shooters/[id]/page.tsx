@@ -9,7 +9,7 @@ import { PieChartBlock } from "@/components/PieChartBlock";
 import { Query, QueryShooterStatisticArgs } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
 import { Chip, Divider, Grid, Paper, Stack, Typography, useTheme } from "@mui/material";
-import { LineChart, PieChart, PieValueType } from "@mui/x-charts";
+import { LineChart, PieChart, PieValueType, SparkLineChart } from "@mui/x-charts";
 import { useParams } from "next/navigation";
 import React from "react";
 
@@ -205,6 +205,13 @@ export default function ShooterStatisticPage() {
 						<Stack>
 							<Divider><Chip variant="outlined" label="Current" /></Divider>
 							<Typography variant="subtitle1">Current Ranking: {`#${data.shooter?.rankings?.[data.shooter?.rankings.length - 1]?.rank ?? 0}`}</Typography>
+							<Typography variant="caption" color={"InactiveCaptionText"}>Rank vs Time</Typography>
+							<SparkLineChart
+								data={data.shooter?.rankings?.map((item) => item?.rank ?? 0) ?? []}
+								height={50}
+								showHighlight={true}
+								showTooltip={true}
+							/>
 							<Typography variant="subtitle1">Current Rating: {`${(data.shooter?.ratings?.[data.shooter?.ratings.length - 1]?.rating ?? 0).toFixed(2)}`}</Typography>
 							<Typography variant="caption" color={"InactiveCaptionText"}>Rating represented the shooter performance</Typography>
 							<Typography variant="overline" fontSize={"10px"} color={"GrayText"}> s = sum of score, t = sum of  time, k = s/t, a = avg acc, h= avg hit factor, rating(k) = ak^2+hk</Typography>
@@ -256,6 +263,7 @@ export default function ShooterStatisticPage() {
 									scaleType: "point",
 									data: ratingChartData.label.length > eloChartData.label.length ? ratingChartData.label : eloChartData.label,
 									label: "Time",
+									tickMinStep: 3600 * 1000 * 12,
 								},
 							]}
 							grid={{ vertical: true, horizontal: true }}
