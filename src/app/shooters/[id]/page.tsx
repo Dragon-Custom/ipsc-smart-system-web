@@ -8,7 +8,7 @@ export const preferredRegion = "auto";
 import { PieChartBlock } from "@/components/PieChartBlock";
 import { Query, QueryShooterStatisticArgs } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";
-import { Chip, Divider, Grid, Paper, Stack, Typography, useTheme } from "@mui/material";
+import { Chip, Divider, Grid, Paper, Slider, Stack, Typography, useTheme } from "@mui/material";
 import { LineChart, PieChart, PieValueType, SparkLineChart } from "@mui/x-charts";
 import { useParams } from "next/navigation";
 import React from "react";
@@ -64,6 +64,7 @@ const LineChartBlock = (props: {
 		</Paper>
 	</Grid>;
 };
+const minDistance = 10;
 
 export default function ShooterStatisticPage() {
 	
@@ -182,13 +183,38 @@ export default function ShooterStatisticPage() {
 			eloData: eloData,
 		};
 	}, [query]);
+	const [xLimits, setXLimites] = React.useState<number[]>([0, 0]);
+	const handleChange = (
+		event: Event,
+		newValue: number | number[],
+		activeThumb: number,
+	) => {
+		if (!Array.isArray(newValue)) {
+			return;
+		}
+
+		if (newValue[1] - newValue[0] < minDistance) {
+			if (activeThumb === 0) {
+				const clamped = Math.min(newValue[0], chartData.label.length - minDistance);
+				setXLimites([clamped, clamped + minDistance]);
+			} else {
+				const clamped = Math.max(newValue[1], minDistance);
+				setXLimites([clamped - minDistance, clamped]);
+			}
+		} else {
+			setXLimites(newValue as number[]);
+		}
+	};
 
 	// #region this block of code can trigger the React rerender
 	// by default the data won't show up in the first render, so we need to force update it
 	const [, forceUpdate] = React.useReducer(x => x + 1, 0);
 	const ref = React.useRef<HTMLDivElement>(null);
 	React.useEffect(() => {
-		setTimeout(() => forceUpdate(), 100);
+		setTimeout(() => {
+			forceUpdate();
+			setXLimites([0, chartData.label.length]);
+		}, 100);
 	}, [ref,query]);
 	// #endregion
 
@@ -264,11 +290,14 @@ export default function ShooterStatisticPage() {
 							leftAxis="Rating"
 							xAxis={[
 								{
-									id: "Rating",
-									scaleType: "point",
-									data: chartData.label,
+									min: xLimits[0],
+									max: xLimits[1] - 1,
+									// scaleType: "point",
+									data: chartData.label.map((item, index) => index),
+									valueFormatter: (value) => {
+										return chartData.label[value];
+									},
 									label: "Time",
-									tickMinStep: 3600 * 1000 * 12,
 								},
 							]}
 							grid={{ vertical: true, horizontal: true }}
@@ -277,6 +306,14 @@ export default function ShooterStatisticPage() {
 								y: "line",
 							}}
 							ref={ref}
+						/>
+						<Slider
+							value={xLimits}
+							onChange={handleChange}
+							valueLabelDisplay="auto"
+							min={0}
+							max={chartData.label.length}
+							sx={{ mt: 2 }}
 						/>
 					</LineChartBlock>
 					<PieChartBlock title="Hit Zone Distribution">
