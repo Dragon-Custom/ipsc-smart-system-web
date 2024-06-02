@@ -92,6 +92,15 @@ export type DqObjectsFilterInput = {
   index?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
 };
 
+export type Elo = Node & {
+  __typename?: 'Elo';
+  createAt: Scalars['DateTime']['output'];
+  elo: Scalars['Float']['output'];
+  id: Scalars['Int']['output'];
+  shooter: Shooter;
+  updatedAt: Scalars['DateTime']['output'];
+};
+
 export type GlobalStatistic = {
   __typename?: 'GlobalStatistic';
   alphaZoneTotal?: Maybe<Scalars['Int']['output']>;
@@ -506,6 +515,7 @@ export type Shooter = Node & {
   createAt: Scalars['DateTime']['output'];
   designedStage?: Maybe<Array<Maybe<Stage>>>;
   division: Division;
+  elo?: Maybe<Array<Maybe<Elo>>>;
   email: Scalars['String']['output'];
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
