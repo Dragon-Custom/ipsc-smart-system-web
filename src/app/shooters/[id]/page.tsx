@@ -46,6 +46,12 @@ const FetchQuery = gql`
 				updatedAt
 				createAt
 			}
+			elo {
+				id
+				elo
+				updatedAt
+				createAt
+			}
 		}
 	}
 `;
