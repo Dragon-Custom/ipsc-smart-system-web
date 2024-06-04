@@ -1,8 +1,8 @@
 import React from "react";
 import { Delete, Edit } from "@mui/icons-material";
 import { Button, ButtonGroup, Grid, Paper, Typography, useTheme } from "@mui/material";
-import { gql, useMutation, useQuery } from "@apollo/client";
-import { Division, Mutation, MutationDeleteShooterArgs, Query, QueryShooterArgs } from "@/gql/graphql";
+import { gql, useMutation } from "@apollo/client";
+import { Division, Mutation, MutationDeleteShooterArgs } from "@/gql/graphql";
 import { useConfirm } from "material-ui-confirm";
 import ShooterFormDialog from "./shooterFormDialog";
 
@@ -14,6 +14,9 @@ export interface ShooterCardProps {
 	division: Division;
 	showMutationButton?: boolean;
 	email: string;
+	elo: number;
+	rank: number;
+	rating: number;
 	onClick?: (id: number) => void;
 }
 
@@ -29,49 +32,10 @@ const DeleteOneShooterMutation = gql`
 `;
 
 
-const DataQuery = gql`
-	query Shooter($id: Int!) {
-		shooter(id: $id) {
-			id
-			createAt
-			name
-			division
-			email
-			rankings {
-				id
-				shooterId
-				rank
-				updatedAt
-				createAt
-			}
-			ratings {
-				id
-				shooterId
-				rating
-				updatedAt
-				createAt
-			}
-			elo {
-				id
-				elo
-				updatedAt
-				createAt
-			}
-		}
-	}
-`;
-
-
-
 export default function ShooterCard(props: ShooterCardProps) {
 	const [ deleteShooter ] = useMutation<Mutation["deleteShooter"], MutationDeleteShooterArgs>(DeleteOneShooterMutation);
 	const muiConfirm = useConfirm();
 	const [editShooterFormOpen, setEditShooterFormOpen] = React.useState(false);
-	const query = useQuery<Query,QueryShooterArgs>(DataQuery, {
-		variables: {
-			id: props.id,
-		},
-	});
 
 	function onDeleteButtonClick() {
 		muiConfirm({
@@ -111,17 +75,17 @@ export default function ShooterCard(props: ShooterCardProps) {
 								</Grid>
 								<Grid item xs={12 / 3} md={12/4} alignContent={"center"}>
 									<Paper elevation={4} sx={{p:1, color: theme.palette.info.main}}>
-										<Typography variant="button">Rank: #{query.data?.shooter?.rankings?.[0]?.rank}</Typography>
+										<Typography variant="button">Rank: #{props.rank}</Typography>
 									</Paper>
 								</Grid>
 								<Grid item xs={12 / 3} md={12/4} alignContent={"center"}>
 									<Paper elevation={6} sx={{p:1, color: theme.palette.secondary.main}}>
-										<Typography variant="button">Rating: {query.data?.shooter?.ratings?.[0]?.rating.toFixed(1)}</Typography>
+										<Typography variant="button">Rating: {props.rating.toFixed(1)}</Typography>
 									</Paper>
 								</Grid>
 								<Grid item xs={12 / 3} md={12/4} alignContent={"center"}>
 									<Paper elevation={8} sx={{p:1, color: theme.palette.success.main}}>
-										<Typography variant="button">ELO: {query.data?.shooter?.elo?.[0]?.elo.toFixed(1)}</Typography>
+										<Typography variant="button">ELO: {props.elo.toFixed(1)}</Typography>
 									</Paper>
 								</Grid>
 							</Grid>
