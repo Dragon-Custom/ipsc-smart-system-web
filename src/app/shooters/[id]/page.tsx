@@ -242,8 +242,8 @@ export default function ShooterStatisticPage() {
 								height={50}
 								showHighlight={true}
 								showTooltip={true}
-								xAxis={{
-									reverse: true,
+								sx={{
+									transform: "scale(-1, 1)",
 								}}
 							/>
 							<Typography variant="subtitle1">Current Rating: {`${(data.shooter?.ratings?.[data.shooter?.ratings.length - 1]?.rating ?? 0).toFixed(2)}`}</Typography>
