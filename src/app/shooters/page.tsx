@@ -78,7 +78,6 @@ export default function Shooters() {
 
 	const sortedData: Maybe<Shooter>[] | undefined = React.useMemo(() => {
 		const sortOptionStr = SortOptions[sortOption];
-		console.log("sortOption", sortOptionStr,sortOption,SortOptions);
 		switch (sortOptionStr) {
 		case "Name":
 			return data?.shooters?.toSorted(function (a, b) {
@@ -101,11 +100,23 @@ export default function Shooters() {
 				return 0;
 			});
 		case "Elo":
-			return data?.shooters?.toSorted((a, b) => (b?.elo?.[0]?.elo ?? 0) - (a?.elo?.[0]?.elo ?? 0) );
+			return data?.shooters?.toSorted((a, b) => {
+				const aLastestElo = a?.elo?.[a?.elo?.length - 1]?.elo || 0;
+				const bLastestElo = b?.elo?.[b?.elo?.length - 1]?.elo || 0;
+				return bLastestElo - aLastestElo;
+			});
 		case "Rank":
-			return data?.shooters?.toSorted((a, b) => (a?.rankings?.[0]?.rank ?? 0) - (b?.rankings?.[0]?.rank ?? 0));
+			return data?.shooters?.toSorted((a, b) => {
+				const aLastestRank = a?.rankings?.[a?.rankings?.length - 1]?.rank || 0;
+				const bLastestRank = b?.rankings?.[b?.rankings?.length - 1]?.rank || 0;
+				return bLastestRank - aLastestRank;
+			});
 		case "Rating":
-			return data?.shooters?.toSorted((a, b) => (b?.ratings?.[0]?.rating ?? 0) - (a?.ratings?.[0]?.rating ?? 0));
+			return data?.shooters?.toSorted((a, b) => {
+				const aLastestRating = a?.ratings?.[a?.ratings?.length - 1]?.rating || 0;
+				const bLastestRating = b?.ratings?.[b?.ratings?.length - 1]?.rating || 0;
+				return bLastestRating - aLastestRating;
+			});
 		case "Accuracy":
 			return data?.shooters?.toSorted((a, b) => (a?.ratings?.[0]?.rating ?? 0) - (b?.ratings?.[0]?.rating ?? 0));
 		default:
@@ -145,9 +156,9 @@ export default function Shooters() {
 							id={v.id}
 							name={v.name}
 							email={v.email}
-							elo={v.elo?.[0]?.elo ?? 0}
-							rank={v.rankings?.[0]?.rank ?? 0}
-							rating={v.ratings?.[0]?.rating ?? 0}
+							elo={v.elo?.[v.elo?.length - 1]?.elo ?? 0}
+							rank={v.rankings?.[v.rankings?.length - 1]?.rank ?? 0}
+							rating={v.ratings?.[v.ratings?.length - 1]?.rating ?? 0}
 						/>
 						<Divider sx={{ my: .5 }} />
 					</Box>;
