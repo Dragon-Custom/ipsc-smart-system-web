@@ -100,7 +100,7 @@ export default function ShooterCard(props: ShooterCardProps) {
 
 	return (
 		<>
-			<Paper elevation={5} sx={{my:2, p:0}}>
+			<Paper elevation={2} sx={{my:2, p:0}}>
 				<Grid container gap={2} sx={{p:0}}>
 					<Grid container item xs={12} sm sx={{p:0}}>
 						<Button fullWidth sx={{ p: 1, color: "white", textAlign: "left" }} variant="outlined" color="primary" onClick={() => props?.onClick?.(props.id)}>
@@ -110,17 +110,17 @@ export default function ShooterCard(props: ShooterCardProps) {
 									<Typography variant="caption" color={"GrayText"}>Division: {props.division}</Typography>
 								</Grid>
 								<Grid item xs={12 / 3} md={12/4} alignContent={"center"}>
-									<Paper elevation={5} sx={{p:1, color: theme.palette.info.main}}>
+									<Paper elevation={4} sx={{p:1, color: theme.palette.info.main}}>
 										<Typography variant="button">Rank: #{query.data?.shooter?.rankings?.[0]?.rank}</Typography>
 									</Paper>
 								</Grid>
 								<Grid item xs={12 / 3} md={12/4} alignContent={"center"}>
-									<Paper elevation={10} sx={{p:1, color: theme.palette.secondary.main}}>
+									<Paper elevation={6} sx={{p:1, color: theme.palette.secondary.main}}>
 										<Typography variant="button">Rating: {query.data?.shooter?.ratings?.[0]?.rating.toFixed(1)}</Typography>
 									</Paper>
 								</Grid>
 								<Grid item xs={12 / 3} md={12/4} alignContent={"center"}>
-									<Paper elevation={15} sx={{p:1, color: theme.palette.success.main}}>
+									<Paper elevation={8} sx={{p:1, color: theme.palette.success.main}}>
 										<Typography variant="button">ELO: {query.data?.shooter?.elo?.[0]?.elo.toFixed(1)}</Typography>
 									</Paper>
 								</Grid>
@@ -128,7 +128,7 @@ export default function ShooterCard(props: ShooterCardProps) {
 						</Button>
 					</Grid>
 					<Grid item xs={12} sm={2} md={8/4} alignContent={"center"} sx={{p:0}} >
-						<Paper elevation={20} sx={{height: "100%"}}>
+						<Paper elevation={10} sx={{height: "100%"}}>
 							<ButtonGroup variant="outlined" fullWidth sx={{height: "100%"}}>
 								<Button fullWidth onClick={onEditButtonClick} color="secondary" variant="outlined">
 									<Edit/>
