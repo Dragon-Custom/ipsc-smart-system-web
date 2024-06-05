@@ -148,7 +148,7 @@ export default function ScorelistPage() {
 	if (isNaN(id)) return <>Error: youve pass a invaild scorelist id</>;
 	const theme = useTheme();
 	const [updateScorelist] = useMutation<Mutation["addRoundsToScorelist"], MutationAddRoundsToScorelistArgs>(AddRoundToScorelistMutation);
-	const [selectedRound, setSelectedRound] = useSearchParameters<number>("round");
+	const [selectedRound, setSelectedRound] = useSearchParameters<number>("round", 0);
 	const query = useQuery<Query, QueryScorelistArgs>(FetchQuery, {
 		variables: {
 			id,
@@ -207,13 +207,14 @@ export default function ScorelistPage() {
 				HitFactor: parseFloat(v.hitFactor as unknown as string).toFixed(3),
 				Percentage: selectedRound == 0 ? v.overallPercentage : v.roundPercentage,
 				State: v.state,
-				Round: selectedRound == 0 ? v.round : undefined,
+				Round: v.round,
 				Accuracy: v.accuracy as number,
 			});
 		});
+		console.log("refresh");
 		setRowData([...Rows.toSorted((a, b) => a.Id - b.Id)]);
 		const newColDefs = [...colDefs];
-		newColDefs[1].hide = selectedRound !== 0;
+		newColDefs[1].hide = selectedRound != 0;
 		setColDefs(newColDefs);
 	}
 
