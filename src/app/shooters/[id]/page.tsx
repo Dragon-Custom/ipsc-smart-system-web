@@ -177,8 +177,6 @@ export default function ShooterStatisticPage() {
 			eloData.push(...Array(ratingData.length - eloData.length).fill(eloData[eloData.length - 1]));
 		else
 			ratingData.push(...Array(eloData.length - ratingData.length).fill(ratingData[ratingData.length - 1]));
-
-		console.log(outputLabels, ratingData, eloData);
 		
 		return {
 			label: outputLabels,
