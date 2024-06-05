@@ -98,6 +98,7 @@ export type Elo = Node & {
   elo: Scalars['Float']['output'];
   id: Scalars['Int']['output'];
   shooter: Shooter;
+  tick: Scalars['Int']['output'];
   updatedAt: Scalars['DateTime']['output'];
 };
 
@@ -324,11 +325,9 @@ export type Query = {
   dqObject?: Maybe<DqObject>;
   dqObjects?: Maybe<Array<Maybe<DqObject>>>;
   globalStatistic?: Maybe<GlobalStatistic>;
-  historyRating?: Maybe<Array<Maybe<Rating>>>;
   image?: Maybe<Scalars['FileOutput']['output']>;
   proErrorObject?: Maybe<ProErrorObject>;
   proErrorObjects?: Maybe<Array<Maybe<ProErrorObject>>>;
-  rating?: Maybe<Rating>;
   score?: Maybe<Score>;
   scoreboard?: Maybe<Scoreboard>;
   scoreboards: Array<Maybe<Scoreboard>>;
@@ -359,11 +358,6 @@ export type QueryGlobalStatisticArgs = {
 };
 
 
-export type QueryHistoryRatingArgs = {
-  shooterId: Scalars['Int']['input'];
-};
-
-
 export type QueryImageArgs = {
   id: Scalars['String']['input'];
 };
@@ -376,11 +370,6 @@ export type QueryProErrorObjectArgs = {
 
 export type QueryProErrorObjectsArgs = {
   filter?: InputMaybe<ProErrorObjectsFilterInput>;
-};
-
-
-export type QueryRatingArgs = {
-  shooterId: Scalars['Int']['input'];
 };
 
 
@@ -440,6 +429,7 @@ export type Ranking = Node & {
   rank: Scalars['Int']['output'];
   shooter: Shooter;
   shooterId: Scalars['Int']['output'];
+  tick: Scalars['Int']['output'];
   updatedAt: Scalars['DateTime']['output'];
 };
 
@@ -450,6 +440,7 @@ export type Rating = Node & {
   rating: Scalars['Float']['output'];
   shooter: Shooter;
   shooterId: Scalars['Int']['output'];
+  tick: Scalars['Int']['output'];
   updatedAt: Scalars['DateTime']['output'];
 };
 

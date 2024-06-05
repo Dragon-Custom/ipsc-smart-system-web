@@ -24,6 +24,7 @@ const DataQuery = gql`
 				rank
 				updatedAt
 				createAt
+				tick
 			}
 			ratings {
 				id
@@ -31,12 +32,14 @@ const DataQuery = gql`
 				rating
 				updatedAt
 				createAt
+				tick
 			}
 			elo {
 				id
 				elo
 				updatedAt
 				createAt
+				tick
 			}
 		}
 	}

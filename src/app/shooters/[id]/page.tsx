@@ -39,18 +39,21 @@ const FetchQuery = gql`
 				rating
 				updatedAt
 				createAt
+				tick
 			}
 			rankings {
 				id
 				rank
 				updatedAt
 				createAt
+				tick
 			}
 			elo {
 				id
 				elo
 				updatedAt
 				createAt
+				tick
 			}
 		}
 	}
@@ -238,12 +241,12 @@ export default function ShooterStatisticPage() {
 							<Typography variant="subtitle1">Current Ranking: {`#${data.shooter?.rankings?.[data.shooter?.rankings.length - 1]?.rank ?? 0}`}</Typography>
 							<Typography variant="caption" color={"InactiveCaptionText"}>Rank vs Time</Typography>
 							<SparkLineChart
-								data={data.shooter?.rankings?.map((item) => item?.rank ?? 0) ?? []}
+								data={data.shooter?.rankings?.toSorted((a, b) => a?.tick - b?.tick).map((item) => item?.rank ?? 0) ?? []}
 								height={50}
 								showHighlight={true}
 								showTooltip={true}
 								sx={{
-									transform: "scale(-1, 1)",
+									transform: "scale(1, -1)",
 								}}
 							/>
 							<Typography variant="subtitle1">Current Rating: {`${(data.shooter?.ratings?.[data.shooter?.ratings.length - 1]?.rating ?? 0).toFixed(2)}`}</Typography>
