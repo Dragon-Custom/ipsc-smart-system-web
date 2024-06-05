@@ -9,6 +9,7 @@ import { Add } from "@mui/icons-material";
 import ShooterFormDialog from "./shooterFormDialog";
 import { useRouter } from "next/navigation";
 import { Shooter } from "../../gql/graphql";
+import { useSearchParameters } from "@/hooks/useSearchParameters";
 
 const DataQuery = gql`
 	query {
@@ -77,10 +78,10 @@ export default function Shooters() {
 		router.push(`shooters/${id}`);
 	}
 
-	const [sortOption, setSortOption] = React.useState<number>(0);
+	const [sortOption, setSortOption] = useSearchParameters("sortby");
 
 	const sortedData: Maybe<Shooter>[] | undefined = React.useMemo(() => {
-		const sortOptionStr = SortOptions[sortOption];
+		const sortOptionStr = SortOptions[parseInt(sortOption ?? "0")];
 		switch (sortOptionStr) {
 		case "Name":
 			return data?.shooters?.toSorted(function (a, b) {
@@ -112,7 +113,7 @@ export default function Shooters() {
 			return data?.shooters?.toSorted((a, b) => {
 				const aLastestRank = a?.rankings?.[a?.rankings?.length - 1]?.rank || 0;
 				const bLastestRank = b?.rankings?.[b?.rankings?.length - 1]?.rank || 0;
-				return bLastestRank - aLastestRank;
+				return aLastestRank - bLastestRank;
 			});
 		case "Rating":
 			return data?.shooters?.toSorted((a, b) => {
@@ -137,7 +138,8 @@ export default function Shooters() {
 						<Select
 							label="Sort by:"
 							fullWidth
-							onChange={(e) => setSortOption(e.target.value as number)}
+							defaultValue={parseInt(sortOption ?? "0")}
+							onChange={(e) => setSortOption(String(e.target.value))}
 						>
 							{SortOptions.map((v, k) => {
 								return <MenuItem key={k} value={k}>{v}</MenuItem>;
