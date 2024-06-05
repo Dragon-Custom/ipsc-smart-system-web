@@ -241,7 +241,7 @@ export default function ShooterStatisticPage() {
 							<Typography variant="subtitle1">Current Ranking: {`#${data.shooter?.rankings?.[data.shooter?.rankings.length - 1]?.rank ?? 0}`}</Typography>
 							<Typography variant="caption" color={"InactiveCaptionText"}>Rank vs Time</Typography>
 							<SparkLineChart
-								data={data.shooter?.rankings?.toSorted((a, b) => a?.tick - b?.tick).map((item) => item?.rank ?? 0) ?? []}
+								data={data.shooter?.rankings?.toSorted((a, b) => (a?.tick || 0) - (b?.tick || 0)).map((item) => item?.rank ?? 0) ?? []}
 								height={50}
 								showHighlight={true}
 								showTooltip={true}
@@ -287,18 +287,19 @@ export default function ShooterStatisticPage() {
 									connectNulls: true,
 									curve: "linear",
 									label: "Elo",
-									yAxisKey: "Rating",
+									yAxisKey: "Elo",
 								},
 							]}
 							yAxis={[
-								{ id: "Rating", scaleType: "pow" },
+								{ id: "Rating", scaleType: "linear", label: "Rating"},
+								{ id: "Elo", scaleType: "linear" , label: "Elo" },
 							]}
-							leftAxis="Rating"
+							leftAxis="Elo"
+							rightAxis="Rating"
 							xAxis={[
 								{
 									min: xLimits[0],
 									max: xLimits[1] - 1,
-									// scaleType: "point",
 									data: chartData.label.map((item, index) => index),
 									valueFormatter: (value) => {
 										return chartData.label[value];
