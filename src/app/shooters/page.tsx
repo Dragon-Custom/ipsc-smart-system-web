@@ -78,10 +78,10 @@ export default function Shooters() {
 		router.push(`shooters/${id}`);
 	}
 
-	const [sortOption, setSortOption] = useSearchParameters("sortby");
+	const [sortOption, setSortOption] = useSearchParameters<number>("sortby");
 
 	const sortedData: Maybe<Shooter>[] | undefined = React.useMemo(() => {
-		const sortOptionStr = SortOptions[parseInt(sortOption ?? "0")];
+		const sortOptionStr = SortOptions[sortOption ?? 0];
 		switch (sortOptionStr) {
 		case "Name":
 			return data?.shooters?.toSorted(function (a, b) {
@@ -138,8 +138,8 @@ export default function Shooters() {
 						<Select
 							label="Sort by:"
 							fullWidth
-							defaultValue={parseInt(sortOption ?? "0")}
-							onChange={(e) => setSortOption(String(e.target.value))}
+							defaultValue={sortOption ?? 0}
+							onChange={(e) => setSortOption((e.target.value) as number)}
 						>
 							{SortOptions.map((v, k) => {
 								return <MenuItem key={k} value={k}>{v}</MenuItem>;
