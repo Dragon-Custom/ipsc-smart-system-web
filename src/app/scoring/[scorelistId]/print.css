@@ -1,0 +1,17 @@
+@media print {
+	body * {
+		visibility: hidden;
+        overflow: visible;
+	}
+	#myGrid,
+	#myGrid * {
+		visibility: visible;
+        overflow: visible;
+	}
+	#myGrid {
+        overflow: visible;
+		position: absolute;
+		left: 0;
+		top: 0;
+	}
+}
