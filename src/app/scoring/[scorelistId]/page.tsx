@@ -35,13 +35,14 @@ import {
 	useTheme,
 } from "@mui/material";
 import { AgGridReact } from "ag-grid-react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import React from "react";
 import { ColDef, RowClickedEvent, RowDragEndEvent } from "@ag-grid-community/core";
 import JoinShooterDialog from "./joinShooterDialog";
 import { useToggle } from "@uidotdev/usehooks";
 import { useLoading } from "mui-loading";
 import { shuffle } from "@/lib/utils";
+import { useSearchParameters } from "@/hooks/useSearchParameters";
 
 const FetchQuery = gql`
     query Scorelist($id: Int!) {
@@ -145,11 +146,9 @@ export default function ScorelistPage() {
 	const params = useParams();
 	const id = parseInt(params.scorelistId as string);
 	if (isNaN(id)) return <>Error: youve pass a invaild scorelist id</>;
-	const searchParams = useSearchParams();
-	const router = useRouter();
 	const theme = useTheme();
 	const [updateScorelist] = useMutation<Mutation["addRoundsToScorelist"], MutationAddRoundsToScorelistArgs>(AddRoundToScorelistMutation);
-	const [selectedRound, setSelectedRound] = React.useState(0);
+	const [selectedRound, setSelectedRound] = useSearchParameters<number>("round");
 	const query = useQuery<Query, QueryScorelistArgs>(FetchQuery, {
 		variables: {
 			id,
@@ -193,8 +192,7 @@ export default function ScorelistPage() {
 				nameSurfix = "(DNF)";
 				break;
 			}
-
-			if (v.round !== selectedRound && selectedRound !== 0) return;
+			if (v.round !== selectedRound && (selectedRound ?? 0) !== 0) return;
 			Rows.push({
 				Id: v.id,
 				A: v.alphas,
@@ -228,20 +226,6 @@ export default function ScorelistPage() {
 		setJoinShooterDialogOpem(false);
 	}
 
-	function updateURL() {
-		const current = new URLSearchParams(Array.from(searchParams.entries()));
-		if (selectedRound == 0) {
-			current.delete("round");
-		} else {
-			current.set("round",selectedRound.toString());
-		}
-		// cast to string
-		const search = current.toString();
-		// or const query = `${'?'.repeat(search.length && 1)}${search}`;
-		const query = search ? `?${search}` : "";
-
-		router.push(`${location.pathname}${query}`);
-	}
 	//TODO refactor swap
 	const [ swap ] = useMutation<Mutation["swapScoresId"], MutationSwapScoresIdArgs>(SwapMutation);
 	const onRowDragEnd = React.useCallback((event: RowDragEndEvent<ScoreItem>) => {
@@ -302,6 +286,8 @@ export default function ScorelistPage() {
 		} catch (e) { /* empty */ }
 	}, []);
 
+	const router = useRouter();
+
 	function onRowClicked(event: RowClickedEvent<ScoreItem>) {
 		router.push(`${id}/${event.data?.Id}`);
 	}
@@ -309,21 +295,13 @@ export default function ScorelistPage() {
 
 	// #endregion
 	React.useEffect(() => {
-		updateURL();
 		refreshGrid();
 		setTimeout(() => autoSizeAll(false), 500);
 	}, [selectedRound, query, enableOrdering]);
 	React.useEffect(() => {		
 		setTimeout(() => autoSizeAll(false), 1000);
 	}, [gridRef]);
-	React.useEffect(() => {
-		const round = parseInt(searchParams.get("round") || "0");
-		if (!isNaN(round)) {
-			setSelectedRound(round);
-		} else {
-			setSelectedRound(0);
-		}
-	}, []);
+
 
 	const getRowStyle = (params: RowClassParams<ScoreItem>) => {
 		switch (params.data?.State) {
@@ -404,7 +382,7 @@ export default function ScorelistPage() {
 			}}>
 				<Tabs
 					variant="scrollable"
-					value={selectedRound}
+					value={selectedRound ?? 0}
 					onChange={(e, v) => onSelectedRoundChange(v)}
 				>
 					<Tab label="Overall" value={0} />
@@ -486,8 +464,8 @@ export default function ScorelistPage() {
 				open={joinShooterDialogOpem}
 				onClose={closeJoinShooterDialog}
 				scorelistId={id}
-				round={selectedRound}
-				selectedRound={selectedRound}
+				round={(selectedRound ?? 0)}
+				selectedRound={(selectedRound ?? 0)}
 			/>
 		</Stack>
 	);

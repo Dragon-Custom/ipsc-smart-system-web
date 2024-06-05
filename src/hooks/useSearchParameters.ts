@@ -3,14 +3,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 
 
-export function useSearchParameters(key: string): [string | undefined, (value: string | undefined) => void] {
+export function useSearchParameters<T>(key: string): [T | undefined, (value: T | undefined) => void] {
 	const params = useSearchParams();
 	const router = useRouter();
 	const searchParams = Object.fromEntries(params);
-	function setParam(value: string | undefined) {
+	function setParam(value: T | undefined) {
 		const current = new URLSearchParams(Array.from(params));
 		if (value) 
-			current.set(key, value);
+			current.set(key, JSON.stringify(value));
 		else 
 			current.delete(key);
 
@@ -22,5 +22,7 @@ export function useSearchParameters(key: string): [string | undefined, (value: s
 		router.push(`${location.pathname}${query}`);
 	}
 
-	return [searchParams[key], setParam];
+	const parsedValue = searchParams[key] ? JSON.parse(searchParams[key]) : undefined;
+
+	return [parsedValue, setParam];
 }
