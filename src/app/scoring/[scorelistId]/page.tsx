@@ -401,13 +401,14 @@ export default function ScorelistPage() {
 					})()}
 				</Tabs>
 				<Stack direction={mobileBreakpoint ? "row" : "column"} justifyContent={"space-between"} gap={2}>
-					<Stack direction={"row"} gap={2}>
+					<Stack direction={mobileBreakpoint ? "row" : "column"} gap={2}>
 						<Button onClick={() => autoSizeAll(false)}>
-								Resize the grid
+							Resize the grid
 						</Button>
 						{selectedRound == 0 ||
 							<FormControlLabel value={enableOrdering} onChange={() => toggleOrdering()} control={<Switch />} label="Enable ordering" />
 						}
+						<Button variant="outlined" onClick={() => router.replace(`${location.origin}/statistics/?scorelist=%5B${id}%5D`)}>Statistics</Button>
 					</Stack>
 					{selectedRound == 0 ||
 						<Stack direction={mobileBreakpoint ? "row" : "row-reverse"} gap={2}>
