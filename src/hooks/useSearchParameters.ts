@@ -3,7 +3,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 
 
-export function useSearchParameters<T>(key: string): [T | undefined, (value: T | undefined) => void] {
+export function useSearchParameters<T>(key: string, defaultValue?: T): [T | undefined, (value: T | undefined) => void] {
 	const params = useSearchParams();
 	const router = useRouter();
 	const searchParams = Object.fromEntries(params);
@@ -22,7 +22,7 @@ export function useSearchParameters<T>(key: string): [T | undefined, (value: T |
 		router.push(`${location.pathname}${query}`);
 	}
 
-	const parsedValue = searchParams[key] ? JSON.parse(searchParams[key]) : undefined;
+	const parsedValue = searchParams[key] ? JSON.parse(searchParams[key]) : defaultValue;
 
 	return [parsedValue, setParam];
 }
