@@ -22,8 +22,6 @@ import {
 	Button,
 	ButtonGroup,
 	FormControlLabel,
-	Menu,
-	MenuItem,
 	Paper,
 	SpeedDial,
 	SpeedDialAction,
@@ -43,10 +41,8 @@ import { ColDef, RowClickedEvent, RowDragEndEvent } from "@ag-grid-community/cor
 import JoinShooterDialog from "./joinShooterDialog";
 import { useToggle } from "@uidotdev/usehooks";
 import { useLoading } from "mui-loading";
-import { delay, shuffle } from "@/lib/utils";
+import { shuffle } from "@/lib/utils";
 import { useSearchParameters } from "@/hooks/useSearchParameters";
-import "./print.css";
-import html2canvas from "html2canvas";
 
 const FetchQuery = gql`
     query Scorelist($id: Int!) {
@@ -215,6 +211,7 @@ export default function ScorelistPage() {
 				Accuracy: v.accuracy as number,
 			});
 		});
+		console.log("refresh");
 		setRowData([...Rows.toSorted((a, b) => a.Id - b.Id)]);
 		const newColDefs = [...colDefs];
 		newColDefs[1].hide = selectedRound != 0;
@@ -360,60 +357,6 @@ export default function ScorelistPage() {
 		}
 	}
 
-	const coRef = React.useRef<HTMLDivElement>(null);
-
-	const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-	const open = Boolean(anchorEl);
-	function handleExportMenuClose() {
-		setAnchorEl(null);
-	}
-	function handleExportMenuOpen(event: React.MouseEvent<HTMLButtonElement>) {
-		setAnchorEl(event.currentTarget);
-	}
-	async function exportScore(format: "JPG" | "PDF") {
-		try {
-			switch (format) {
-			case "JPG":
-				loading?.startLoading();
-				// #region null check
-				if (!gridRef.current)
-					return;
-				// #endregion
-				gridRef.current.api.setGridOption("domLayout", "print");
-				await delay(100);
-				autoSizeAll(false);
-				await delay(100);
-				// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-				// @ts-expect-error
-				const canvas = await html2canvas(document.getElementsByClassName("ag-layout-print")[0]);
-				const imageData = canvas.toDataURL("image/jpg");
-				const link = document.createElement("a");
-
-				link.href = imageData;
-				link.download = `${new Date(data.stage?.createAt).toLocaleDateString()} ${data.stage?.name} ${selectedRound == 0 ? "Overall" : `Round ${selectedRound}`}.jpg`;
-
-				document.body.appendChild(link);
-				link.click();
-				document.body.removeChild(link);
-				// #endregion
-				await delay(100);
-				gridRef.current.api.setGridOption("domLayout", "normal");
-				break;
-				// #endregion
-				
-			case "PDF":
-				gridRef.current?.api.setGridOption("domLayout", "print");
-				await delay(100);
-				autoSizeAll(false);
-				await delay(100);
-				print();
-				gridRef.current?.api.setGridOption("domLayout", "normal");
-				break;
-				
-			}
-		} finally { loading?.stopLoading(); }
-	}
-
 	const mobileBreakpoint = useMediaQuery(theme.breakpoints.up(500));
 
 	// #region error handling
@@ -458,34 +401,23 @@ export default function ScorelistPage() {
 						return tabList;
 					})()}
 				</Tabs>
-				<Stack direction={mobileBreakpoint ? "row" : "column"} justifyContent={"space-between"} gap={2} py={1}>
+				<Stack direction={mobileBreakpoint ? "row" : "column"} justifyContent={"space-between"} gap={2}>
 					<Stack direction={mobileBreakpoint ? "row" : "column"} gap={2}>
-						<ButtonGroup variant="outlined">
-							<Button onClick={() => autoSizeAll(false)}>
-								Resize the grid
-							</Button>
-							<Button onClick={() => router.replace(`${location.origin}/statistics/?scorelist=%5B${id}%5D`)}>
-								Statistics
-							</Button>
-							<Button onClick={handleExportMenuOpen}>
-								Export
-							</Button>
-						</ButtonGroup>
-						<Menu
-							anchorEl={anchorEl}
-							open={open}
-							onClose={handleExportMenuClose}
-						>
-							<MenuItem onClick={() => exportScore("JPG")}>Export as image</MenuItem>
-							<MenuItem onClick={() => exportScore("PDF")}>Export as PDF</MenuItem>
-						</Menu>
+						<Button onClick={() => autoSizeAll(false)}>
+							Resize the grid
+						</Button>
+						{selectedRound == 0 ||
+							<FormControlLabel value={enableOrdering} onChange={() => toggleOrdering()} control={<Switch />} label="Enable ordering" />
+						}
+						<Button variant="outlined" onClick={() => router.replace(`${location.origin}/statistics/?scorelist=%5B${id}%5D`)}>Statistics</Button>
 					</Stack>
 					{selectedRound == 0 ||
 						<Stack direction={mobileBreakpoint ? "row" : "row-reverse"} gap={2}>
-							<Button onClick={randomizeOrder}>
+							<ButtonGroup variant="text">
+								<Button onClick={randomizeOrder}>
 									Reshuffle
-							</Button>
-							<FormControlLabel value={enableOrdering} onChange={() => toggleOrdering()} control={<Switch />} label="Enable ordering" />
+								</Button>
+							</ButtonGroup>
 						</Stack>
 					}
 				</Stack>
@@ -494,13 +426,10 @@ export default function ScorelistPage() {
 					style={{
 						height: "100%",
 					}} // the grid will fill the size of the parent container
-					ref={coRef}
-					id="myGrid"
 				>
 					{/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
 					{/* @ts-ignore */}
 					<AgGridReact
-						id={"feamoefmowepfomkewfop"}
 						ref={gridRef}
 						rowData={rowData}
 						onRowClicked={onRowClicked}

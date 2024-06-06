@@ -108,9 +108,3 @@ a {
         color-scheme: dark;
     }
 }
-
-@media print {
-    body {
-        overflow: visible;
-    }
-}
