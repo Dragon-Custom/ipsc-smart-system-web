@@ -70,7 +70,7 @@ export default function ShooterCard(props: ShooterCardProps) {
 						<Button fullWidth sx={{ p: 1, color: "white", textAlign: "left" }} variant="outlined" color="primary" onClick={() => props?.onClick?.(props.id)}>
 							<Grid container>
 								<Grid item xs={12} sm={12} md={12/4} alignContent={"center"}>
-									<Typography variant="h4">{props.name}</Typography>
+									<Typography variant="h4" color={"textPrimary"}>{props.name}</Typography>
 									<Typography variant="caption" color={"GrayText"}>Division: {props.division}</Typography>
 								</Grid>
 								<Grid item xs={12 / 3} md={12/4} alignContent={"center"}>
