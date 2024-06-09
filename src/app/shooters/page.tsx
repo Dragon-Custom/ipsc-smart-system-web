@@ -188,7 +188,7 @@ export default function Shooters() {
 					icon={<Groups/>}
 					tooltipTitle={"Teams manage"}
 					tooltipOpen
-					onClick={toggleTeamsManageDialog}
+					onClick={toggleTeamsManageDialog as () => void}
 				/>
 			</SpeedDial>
 			<ShooterFormDialog
