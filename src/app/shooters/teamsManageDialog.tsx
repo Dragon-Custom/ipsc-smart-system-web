@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, ButtonGroup, Dialog, DialogContent, DialogTitle, Divider, Grid, Paper, Stack, Typography } from "@mui/material";
-import { gql, useMutation, useQuery } from "@apollo/client";
+import { gql, useMutation, useQuery, useSubscription } from "@apollo/client";
 import { Mutation, MutationCreateTeamArgs, MutationDeleteTeamArgs, MutationUpdateTeamArgs, Query, Team } from "@/gql/graphql";
 import { Delete, Edit } from "@mui/icons-material";
 import { useConfirm } from "material-ui-confirm";
@@ -42,6 +42,12 @@ const CreateTeamMutation = gql`
 		createTeam(team: $team) {
 			id
 		}
+	}
+`;
+
+const TeamsSubscriptionQuery = gql`
+	subscription TeamsSubscription {
+		teamsSubscription
 	}
 `;
 
@@ -108,7 +114,11 @@ function TeamCard(props: { team: Required<Team> }) {
 export default function TeamsManageDialog(props: TeamsManageDialogProps) {
 	const query = useQuery<Query>(DataQuery);
 	const [createTeam] = useMutation<Mutation["createTeam"], MutationCreateTeamArgs>(CreateTeamMutation);
-	
+	useSubscription(TeamsSubscriptionQuery, {
+		onData: () => {
+			query.refetch();
+		},
+	});
 	function onCreateTeamButtonClick() {
 		const teamName = prompt("Enter new team name:");
 		if (teamName) {
