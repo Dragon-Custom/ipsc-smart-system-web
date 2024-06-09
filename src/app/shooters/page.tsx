@@ -5,11 +5,13 @@ import { Maybe, Query } from "@/gql/graphql";
 // import { AgGridReact } from "ag-grid-react";
 import ShooterCard from "./shooterCard";
 import { Box, Divider, FormControl, Grid, InputLabel, List, MenuItem, Select, SpeedDial, SpeedDialAction, SpeedDialIcon, Typography } from "@mui/material";
-import { Add } from "@mui/icons-material";
+import { Add, Groups } from "@mui/icons-material";
 import ShooterFormDialog from "./shooterFormDialog";
 import { useRouter } from "next/navigation";
 import { Shooter } from "../../gql/graphql";
 import { useSearchParameters } from "@/hooks/useSearchParameters";
+import TeamsManageDialog from "./teamsManageDialog";
+import { useToggle } from "@uidotdev/usehooks";
 
 const DataQuery = gql`
 	query {
@@ -128,6 +130,8 @@ export default function Shooters() {
 		}
 	}, [data, sortOption]);
 
+	const [teamsManageDialogOpen, toggleTeamsManageDialog] = useToggle(false);
+
 	return (
 		<>
 			<Typography variant="h4" p={2}>Shooter list: </Typography>
@@ -180,10 +184,20 @@ export default function Shooters() {
 					tooltipOpen
 					onClick={onCreateShooterButtonClick}
 				/>
+				<SpeedDialAction
+					icon={<Groups/>}
+					tooltipTitle={"Teams manage"}
+					tooltipOpen
+					onClick={toggleTeamsManageDialog}
+				/>
 			</SpeedDial>
 			<ShooterFormDialog
 				open={createShooterFormOpen}
 				onClose={closeCreateShooterForm}
+			/>
+			<TeamsManageDialog
+				open={teamsManageDialogOpen}
+				onClose={toggleTeamsManageDialog}
 			/>
 		</>
 	);
