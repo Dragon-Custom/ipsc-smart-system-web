@@ -9,7 +9,7 @@ const NEXT_CONFIG = {
 		ignoreBuildErrors: true,
 	},
 	experimental: {
-		runtime: "edge", // 'node.js' (default) | experimental-edge
+		runtime: "edge",
 	},
 };
 
