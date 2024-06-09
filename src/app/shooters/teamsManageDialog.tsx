@@ -1,5 +1,5 @@
 import React from "react";
-import { Dialog, DialogContent, DialogTitle, Divider, Grid, IconButton, Paper, Stack, Typography } from "@mui/material";
+import { Button, ButtonGroup, Dialog, DialogContent, DialogTitle, Divider, Grid, IconButton, Paper, Stack, Typography } from "@mui/material";
 import { gql, useMutation, useQuery } from "@apollo/client";
 import { Mutation, MutationDeleteTeamArgs, Query, Team } from "@/gql/graphql";
 import { Delete, Edit } from "@mui/icons-material";
@@ -50,21 +50,26 @@ function TeamCard(props: { team: Required<Team> }) {
 		<>
 			<Paper sx={{ px: 0.5, py: 1 }} elevation={2}>
 				<Grid container direction="row" columnGap={{xs: 0.5, sm:1, md:2}}>
-					<Grid item xs={1} alignSelf="center">
+					<Grid item md={1} xs={1} alignSelf="center">
 						<Paper variant="outlined" sx={{ py: 0.5, textAlign: "center" }}>
 							<Typography variant="caption" textAlign="center" color={"InactiveCaptionText"}>#{props.team.id}</Typography>
 						</Paper>
 					</Grid>
-					<Grid item xs alignSelf="center">
-						<Typography variant="h6">{props.team.name}</Typography>
+					<Grid item md xs={6} alignSelf="center">
+						<Typography variant="h6" display={"inline"}>{props.team.name}</Typography>
 					</Grid>
-					<Grid xs={"auto"} alignSelf="center">
-						<IconButton color="primary">
-							<Edit/>
-						</IconButton>
-						<IconButton color="error" onClick={onDeleteTeamButtonClick}>
-							<Delete/>
-						</IconButton>
+					<Grid item md={"auto"} xs alignSelf="center">
+						<Typography variant="caption" color={"InactiveCaptionText"} display={"inline"}>Members: {props.team.shooters?.length || 0}</Typography>
+					</Grid>
+					<Grid md={"auto"} xs={12} alignSelf="center">
+						<ButtonGroup fullWidth>
+							<Button color="primary">
+								<Edit/>
+							</Button>
+							<Button color="error" onClick={onDeleteTeamButtonClick}>
+								<Delete/>
+							</Button>
+						</ButtonGroup>
 					</Grid>
 				</Grid>
 			</Paper>
