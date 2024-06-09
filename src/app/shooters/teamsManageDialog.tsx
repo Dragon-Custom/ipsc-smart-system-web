@@ -1,7 +1,7 @@
 import React from "react";
-import { Button, ButtonGroup, Dialog, DialogContent, DialogTitle, Divider, Grid, IconButton, Paper, Stack, Typography } from "@mui/material";
+import { Button, ButtonGroup, Dialog, DialogContent, DialogTitle, Divider, Grid, Paper, Stack, Typography } from "@mui/material";
 import { gql, useMutation, useQuery } from "@apollo/client";
-import { Mutation, MutationDeleteTeamArgs, Query, Team } from "@/gql/graphql";
+import { Mutation, MutationDeleteTeamArgs, MutationUpdateTeamArgs, Query, Team } from "@/gql/graphql";
 import { Delete, Edit } from "@mui/icons-material";
 import { useConfirm } from "material-ui-confirm";
 
@@ -30,11 +30,19 @@ const DeleteTeamMutation = gql`
 		}
 	}
 `;
+const UpdateTeamMutation = gql`
+	mutation UpdateTeam($id: Int!, $team: UpdateTeamInput) {
+		updateTeam(id: $id, team: $team) {
+			id
+		}
+	}
+`;
 
 
 function TeamCard(props: { team: Required<Team> }) {
 	const confirm = useConfirm();
 	const [ deleteTeam ] = useMutation<Mutation["deleteTeam"], MutationDeleteTeamArgs>(DeleteTeamMutation);
+	const [ updateTeam ] = useMutation<Mutation["updateTeam"], MutationUpdateTeamArgs>(UpdateTeamMutation);
 
 	function onDeleteTeamButtonClick() {
 		confirm({
@@ -46,6 +54,19 @@ function TeamCard(props: { team: Required<Team> }) {
 			deleteTeam({ variables: { id: props.team.id } });
 		}).finally();
 	}
+
+	function onEditTeamButtonClick() {
+		const newName = prompt("Enter new team name:", props.team?.name || "");
+		if (newName && newName.trim() !== props.team?.name?.trim()) {
+			updateTeam({
+				variables: {
+					id: props.team.id,
+					team: { name: newName },
+				},
+			});
+		}
+	}
+
 	return (
 		<>
 			<Paper sx={{ px: 0.5, py: 1 }} elevation={2}>
@@ -63,7 +84,7 @@ function TeamCard(props: { team: Required<Team> }) {
 					</Grid>
 					<Grid md={"auto"} xs={12} alignSelf="center">
 						<ButtonGroup fullWidth>
-							<Button color="primary">
+							<Button color="primary" onClick={onEditTeamButtonClick} >
 								<Edit/>
 							</Button>
 							<Button color="error" onClick={onDeleteTeamButtonClick}>
