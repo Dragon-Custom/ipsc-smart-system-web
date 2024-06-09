@@ -1,10 +1,4 @@
 "use client";
-export const dynamic = "auto";
-export const dynamicParams = true;
-export const revalidate = false;
-export const fetchCache = "auto";
-export const runtime = "edge";
-export const preferredRegion = "auto";
 
 import Timer from "@/app/timer/timer";
 import { Mutation, MutationSetScoreDnfArgs, MutationSetScoreDqArgs, MutationUpdateScoreArgs, ProErrorStore, Query, QueryScoreArgs , ScoreState, UpdateScoreProErrorInput } from "@/gql/graphql";
