@@ -44,6 +44,10 @@ const DataQuery = gql`
 				createAt
 				tick
 			}
+			team {
+				id
+				name
+			}
 		}
 	}
 `;
@@ -168,6 +172,7 @@ export default function Shooters() {
 							elo={v.elo?.[v.elo?.length - 1]?.elo ?? 0}
 							rank={v.rankings?.[v.rankings?.length - 1]?.rank ?? 0}
 							rating={v.ratings?.[v.ratings?.length - 1]?.rating ?? 0}
+							team={v.team}
 						/>
 						<Divider sx={{ my: .5 }} />
 					</Box>;
