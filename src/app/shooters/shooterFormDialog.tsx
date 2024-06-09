@@ -1,7 +1,7 @@
 import React from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, TextField } from "@mui/material";
-import { Division, Mutation, MutationCreateShooterArgs, MutationUpdateShooterArgs } from "@/gql/graphql";
-import { gql, useMutation } from "@apollo/client";
+import { Division, Mutation, MutationCreateShooterArgs, MutationUpdateShooterArgs, Query } from "@/gql/graphql";
+import { gql, useMutation, useQuery } from "@apollo/client";
 
 
 const DivisionArray: { label: string; value: string }[] = [];
@@ -38,11 +38,24 @@ export interface ShooterFormDialogProps {
 		name: string,
 		division: Division,
 		email: string,
+		teamId: number,
 	};
 }
+
+const DataQuery = gql`
+	query Teams {
+		teams {
+			id
+			name
+			createAt
+		}
+	}
+`;
+
 export default function ShooterFormDialog(props: ShooterFormDialogProps) {
 	const [createShooter] = useMutation<Mutation["createShooter"], MutationCreateShooterArgs>(CreateOneShooterMutation);
 	const [updateShooter] = useMutation<Mutation["updateShooter"], MutationUpdateShooterArgs>(UpdateOneShooterMutation);
+	const query = useQuery<Query>(DataQuery);
 
 	function onCreateShooterFormSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -57,6 +70,7 @@ export default function ShooterFormDialog(props: ShooterFormDialogProps) {
 						division: formJson.division as Division,
 						email: formJson.email as string,
 						name: formJson.name as string,
+						teamId: parseInt(formJson.teamId as string),
 					},
 				},
 			})
@@ -72,6 +86,7 @@ export default function ShooterFormDialog(props: ShooterFormDialogProps) {
 						division: formJson.division as Division,
 						email: formJson.email as string,
 						name: formJson.name as string,
+						teamId: parseInt(formJson.teamId as string),
 					},
 				},
 			})
@@ -131,6 +146,24 @@ export default function ShooterFormDialog(props: ShooterFormDialogProps) {
 						))}
 					</Select>
 				</FormControl>
+				{query.data?.teams && (
+					<FormControl fullWidth margin="normal">
+						<InputLabel>Team</InputLabel>
+						<Select
+							name="teamId"
+							label="Team"
+							fullWidth
+							defaultValue={props.editShooter ? props.editShooter.teamId : null}
+						>
+							<MenuItem value={undefined}>None</MenuItem>
+							{query.data.teams.map((v, k) => {
+								if (!v)
+									return null;
+								return <MenuItem value={v.id} key={k}>{v.name}</MenuItem>;
+							})}
+						</Select>
+					</FormControl>
+				)}
 			</DialogContent>
 			<DialogActions>
 				<Button onClick={props.onClose}>Cancel</Button>
