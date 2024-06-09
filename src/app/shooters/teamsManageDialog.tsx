@@ -47,7 +47,7 @@ const CreateTeamMutation = gql`
 
 const TeamsSubscriptionQuery = gql`
 	subscription TeamsSubscription {
-		teamsSubscription
+		teamsChange
 	}
 `;
 
