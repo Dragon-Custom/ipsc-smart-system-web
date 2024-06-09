@@ -1,7 +1,7 @@
 import React from "react";
 import { Button, ButtonGroup, Dialog, DialogContent, DialogTitle, Divider, Grid, Paper, Stack, Typography } from "@mui/material";
 import { gql, useMutation, useQuery } from "@apollo/client";
-import { Mutation, MutationDeleteTeamArgs, MutationUpdateTeamArgs, Query, Team } from "@/gql/graphql";
+import { Mutation, MutationCreateTeamArgs, MutationDeleteTeamArgs, MutationUpdateTeamArgs, Query, Team } from "@/gql/graphql";
 import { Delete, Edit } from "@mui/icons-material";
 import { useConfirm } from "material-ui-confirm";
 
@@ -37,7 +37,13 @@ const UpdateTeamMutation = gql`
 		}
 	}
 `;
-
+const CreateTeamMutation = gql`
+	mutation CreateTeam($team: CreateTeamInput!) {
+		createTeam(team: $team) {
+			id
+		}
+	}
+`;
 
 function TeamCard(props: { team: Required<Team> }) {
 	const confirm = useConfirm();
@@ -101,13 +107,21 @@ function TeamCard(props: { team: Required<Team> }) {
 
 export default function TeamsManageDialog(props: TeamsManageDialogProps) {
 	const query = useQuery<Query>(DataQuery);
+	const [createTeam] = useMutation<Mutation["createTeam"], MutationCreateTeamArgs>(CreateTeamMutation);
+	
+	function onCreateTeamButtonClick() {
+		const teamName = prompt("Enter new team name:");
+		if (teamName) {
+			createTeam({ variables: { team: { name: teamName } } });
+		}
+	}
+	
 	return (
 		<Dialog
 			onClose={props.onClose}
 			open={props.open}
 			PaperProps={{
 				component: "form",
-				// onSubmit: onCreateShooterFormSubmit,
 			}}
 			maxWidth="sm"
 			fullWidth
@@ -122,6 +136,9 @@ export default function TeamsManageDialog(props: TeamsManageDialogProps) {
 									return null;
 								return <TeamCard team={team as Required<Team>} key={team.id} />;
 							})}
+							<Button variant="outlined" color="primary" fullWidth onClick={onCreateTeamButtonClick}>
+								Create new team
+							</Button>
 						</Stack>
 					</>
 				}
