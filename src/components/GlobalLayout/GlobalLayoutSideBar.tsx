@@ -9,12 +9,6 @@ import {
 import { usePathname } from "next/navigation";
 import React from "react";
 import { NextLinkComposed } from "../NextJSLink";
-export const dynamic = "auto";
-export const dynamicParams = true;
-export const revalidate = false;
-export const fetchCache = "auto";
-export const runtime = "edge";
-export const preferredRegion = "auto";
 
 export interface GlobalLayoutSideBarProps {
     open: boolean;

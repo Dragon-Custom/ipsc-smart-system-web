@@ -1,15 +1,9 @@
 "use client";
 import React from "react";
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormLabel, Paper, Slider, Stack } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormLabel, Slider, Stack } from "@mui/material";
 import Cropper, { Area, Point } from "react-easy-crop";
 import getCroppedImg from "./getCroppedImg";
 
-export const dynamic = "auto";
-export const dynamicParams = true;
-export const revalidate = false;
-export const fetchCache = "auto";
-export const runtime = "edge";
-export const preferredRegion = "auto";
 
 export interface ImageCropperProps {
 	open: boolean;
