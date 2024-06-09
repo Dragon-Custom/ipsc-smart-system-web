@@ -13,19 +13,15 @@ export const BUZZER_WAVEFORM_OBJECT: OscillatorType[] = [
 
 export class Buzzer {
 	static instance: Buzzer;
-	osc?: OscillatorNode;
+	osc: OscillatorNode;
 	waveform: OscillatorType;
 	hertz: number;
-	gain?: GainNode;
+	gain: GainNode;
 
 	private constructor() {
 		this.waveform = "sawtooth";
 		this.hertz = 1024;
-		let audioContext = undefined;
-		if (typeof window !== "undefined")
-			audioContext = new window.AudioContext();
-		else
-			return;
+		const audioContext = new window.AudioContext();
 
 		this.osc = audioContext.createOscillator();
 		this.osc.type = this.waveform;
@@ -51,8 +47,6 @@ export class Buzzer {
 	}
 
 	start(hertz: number, waveform: OscillatorType) {
-		if (!this.osc || !this.gain)
-			return;
 		this.hertz = hertz;
 		this.waveform = waveform;
 		this.osc.type = this.waveform;
@@ -61,8 +55,6 @@ export class Buzzer {
 	}
 
 	stop() {
-		if (!this.osc || !this.gain)
-			return;
 		this.gain.gain.value = 0;
 	}
 }
@@ -73,13 +65,9 @@ export function beep(
 	timeinms: number,
 	volume: number = 1,
 ) {
-	// eslint-disable-next-line new-cap
-	const buzzer = Buzzer.GetInstance();
-	if (!buzzer.gain)
-		return;
-	buzzer.gain.gain.value = volume;
-	buzzer.start(hertz, waveform);
+	Buzzer.GetInstance().gain.gain.value = volume;
+	Buzzer.GetInstance().start(hertz, waveform);
 	setTimeout(() => {
-		buzzer.stop();
+		Buzzer.GetInstance().stop();
 	}, timeinms);
 }
