@@ -2,7 +2,7 @@ import React from "react";
 import { Delete, Edit } from "@mui/icons-material";
 import { Button, ButtonGroup, Grid, Paper, Typography, useTheme } from "@mui/material";
 import { gql, useMutation } from "@apollo/client";
-import { Division, Mutation, MutationDeleteShooterArgs } from "@/gql/graphql";
+import { Division, Mutation, MutationDeleteShooterArgs, Team } from "@/gql/graphql";
 import { useConfirm } from "material-ui-confirm";
 import ShooterFormDialog from "./shooterFormDialog";
 
@@ -17,6 +17,7 @@ export interface ShooterCardProps {
 	elo: number;
 	rank: number;
 	rating: number;
+	team: Team;
 	onClick?: (id: number) => void;
 }
 
@@ -30,6 +31,7 @@ const DeleteOneShooterMutation = gql`
 		}
 	}
 `;
+
 
 
 export default function ShooterCard(props: ShooterCardProps) {
@@ -110,6 +112,7 @@ export default function ShooterCard(props: ShooterCardProps) {
 				onClose={closeEditShooterFormOpen}
 				editShooter={{
 					...props,
+					teamId: props.team?.id,
 				}}
 			/>
 		</>
