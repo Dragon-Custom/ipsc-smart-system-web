@@ -625,6 +625,7 @@ export type Subscription = {
   shootersChange?: Maybe<Scalars['Boolean']['output']>;
   stageTagsChange?: Maybe<Scalars['Boolean']['output']>;
   stagesChange?: Maybe<Scalars['Boolean']['output']>;
+  teamsChange?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type TagOnStage = Node & {
