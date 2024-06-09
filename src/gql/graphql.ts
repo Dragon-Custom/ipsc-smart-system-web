@@ -46,6 +46,7 @@ export type CreateShooterShooterInput = {
   division: Division;
   email: Scalars['String']['input'];
   name: Scalars['String']['input'];
+  teamId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type CreateStageInput = {
@@ -65,6 +66,10 @@ export type CreateStageInput = {
 export type CreateStageTagInput = {
   color: Scalars['String']['input'];
   title: Scalars['String']['input'];
+};
+
+export type CreateTeamInput = {
+  name: Scalars['String']['input'];
 };
 
 /** Shooter's division */
@@ -147,6 +152,7 @@ export type Mutation = {
   createStage?: Maybe<Stage>;
   /** create and return the new stage tag */
   createStageTag: StageTag;
+  createTeam?: Maybe<Team>;
   deleteScore?: Maybe<Score>;
   deleteScoreboard?: Maybe<Scoreboard>;
   deleteScorelist?: Maybe<Scorelist>;
@@ -154,6 +160,7 @@ export type Mutation = {
   deleteShooter?: Maybe<Shooter>;
   deleteStage?: Maybe<Stage>;
   deleteStageTag: Scalars['Boolean']['output'];
+  deleteTeam?: Maybe<Team>;
   setScoreDNF?: Maybe<Score>;
   setScoreDQ?: Maybe<Score>;
   swapScoresId?: Maybe<Scalars['Boolean']['output']>;
@@ -164,6 +171,7 @@ export type Mutation = {
   updateStage?: Maybe<Stage>;
   /** return the newest stage tag, if not found return null */
   updateStageTag?: Maybe<StageTag>;
+  updateTeam?: Maybe<Team>;
   uploadImage?: Maybe<Scalars['ID']['output']>;
 };
 
@@ -213,6 +221,11 @@ export type MutationCreateStageTagArgs = {
 };
 
 
+export type MutationCreateTeamArgs = {
+  team: CreateTeamInput;
+};
+
+
 export type MutationDeleteScoreArgs = {
   id: Scalars['Int']['input'];
 };
@@ -239,6 +252,11 @@ export type MutationDeleteStageArgs = {
 
 
 export type MutationDeleteStageTagArgs = {
+  id: Scalars['Int']['input'];
+};
+
+
+export type MutationDeleteTeamArgs = {
   id: Scalars['Int']['input'];
 };
 
@@ -287,6 +305,12 @@ export type MutationUpdateStageArgs = {
 export type MutationUpdateStageTagArgs = {
   id: Scalars['Int']['input'];
   stageTag: UpdateStageTagInput;
+};
+
+
+export type MutationUpdateTeamArgs = {
+  id: Scalars['Int']['input'];
+  team?: InputMaybe<UpdateTeamInput>;
 };
 
 
@@ -340,6 +364,8 @@ export type Query = {
   stageTag?: Maybe<StageTag>;
   stageTags?: Maybe<Array<Maybe<StageTag>>>;
   stages: Array<Maybe<Stage>>;
+  team?: Maybe<Team>;
+  teams: Array<Maybe<Team>>;
 };
 
 
@@ -420,6 +446,11 @@ export type QueryStageTagsArgs = {
 
 export type QueryStagesArgs = {
   filter?: InputMaybe<StageFilterInput>;
+};
+
+
+export type QueryTeamArgs = {
+  id: Scalars['Int']['input'];
 };
 
 export type Ranking = Node & {
@@ -513,6 +544,7 @@ export type Shooter = Node & {
   rankings?: Maybe<Array<Maybe<Ranking>>>;
   ratings?: Maybe<Array<Maybe<Rating>>>;
   scores?: Maybe<Array<Maybe<Score>>>;
+  team?: Maybe<Team>;
 };
 
 export type ShooterStatistic = {
@@ -601,6 +633,14 @@ export type TagOnStage = Node & {
   tag: StageTag;
 };
 
+export type Team = Node & {
+  __typename?: 'Team';
+  createAt?: Maybe<Scalars['DateTime']['output']>;
+  id: Scalars['Int']['output'];
+  name?: Maybe<Scalars['String']['output']>;
+  shooters?: Maybe<Array<Maybe<Shooter>>>;
+};
+
 export type UpdateScoreInput = {
   alphas?: InputMaybe<Scalars['Int']['input']>;
   charlies?: InputMaybe<Scalars['Int']['input']>;
@@ -622,6 +662,7 @@ export type UpdateShooterShooterInput = {
   division?: InputMaybe<Division>;
   email?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
+  teamId?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type UpdateStageInput = {
@@ -642,4 +683,8 @@ export type UpdateStageInput = {
 export type UpdateStageTagInput = {
   color?: InputMaybe<Scalars['String']['input']>;
   title?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateTeamInput = {
+  name?: InputMaybe<Scalars['String']['input']>;
 };

@@ -1,10 +1,4 @@
 "use client";
-export const dynamic = "auto";
-export const dynamicParams = true;
-export const revalidate = false;
-export const fetchCache = "auto";
-export const runtime = "edge";
-export const preferredRegion = "auto";
 import { PieChartBlock } from "@/components/PieChartBlock";
 import { Query, QueryShooterStatisticArgs } from "@/gql/graphql";
 import { gql, useQuery } from "@apollo/client";

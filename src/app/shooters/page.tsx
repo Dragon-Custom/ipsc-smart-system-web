@@ -5,11 +5,13 @@ import { Maybe, Query } from "@/gql/graphql";
 // import { AgGridReact } from "ag-grid-react";
 import ShooterCard from "./shooterCard";
 import { Box, Divider, FormControl, Grid, InputLabel, List, MenuItem, Select, SpeedDial, SpeedDialAction, SpeedDialIcon, Typography } from "@mui/material";
-import { Add } from "@mui/icons-material";
+import { Add, Groups } from "@mui/icons-material";
 import ShooterFormDialog from "./shooterFormDialog";
 import { useRouter } from "next/navigation";
 import { Shooter } from "../../gql/graphql";
 import { useSearchParameters } from "@/hooks/useSearchParameters";
+import TeamsManageDialog from "./teamsManageDialog";
+import { useToggle } from "@uidotdev/usehooks";
 
 const DataQuery = gql`
 	query {
@@ -41,6 +43,10 @@ const DataQuery = gql`
 				updatedAt
 				createAt
 				tick
+			}
+			team {
+				id
+				name
 			}
 		}
 	}
@@ -128,6 +134,8 @@ export default function Shooters() {
 		}
 	}, [data, sortOption]);
 
+	const [teamsManageDialogOpen, toggleTeamsManageDialog] = useToggle(false);
+
 	return (
 		<>
 			<Typography variant="h4" p={2}>Shooter list: </Typography>
@@ -164,6 +172,7 @@ export default function Shooters() {
 							elo={v.elo?.[v.elo?.length - 1]?.elo ?? 0}
 							rank={v.rankings?.[v.rankings?.length - 1]?.rank ?? 0}
 							rating={v.ratings?.[v.ratings?.length - 1]?.rating ?? 0}
+							team={v.team}
 						/>
 						<Divider sx={{ my: .5 }} />
 					</Box>;
@@ -180,10 +189,20 @@ export default function Shooters() {
 					tooltipOpen
 					onClick={onCreateShooterButtonClick}
 				/>
+				<SpeedDialAction
+					icon={<Groups/>}
+					tooltipTitle={"Teams manage"}
+					tooltipOpen
+					onClick={toggleTeamsManageDialog as () => void}
+				/>
 			</SpeedDial>
 			<ShooterFormDialog
 				open={createShooterFormOpen}
 				onClose={closeCreateShooterForm}
+			/>
+			<TeamsManageDialog
+				open={teamsManageDialogOpen}
+				onClose={toggleTeamsManageDialog}
 			/>
 		</>
 	);

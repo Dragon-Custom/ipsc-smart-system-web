@@ -1,7 +1,7 @@
 import React from "react";
 export const dynamic = "auto";
 export const dynamicParams = true;
-export const revalidate = false;
+export const revalidate = 3600;
 export const fetchCache = "auto";
 export const runtime = "edge";
 export const preferredRegion = "auto";
