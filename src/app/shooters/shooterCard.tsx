@@ -6,7 +6,6 @@ import { Division, Mutation, MutationDeleteShooterArgs, Team } from "@/gql/graph
 import { useConfirm } from "material-ui-confirm";
 import ShooterFormDialog from "./shooterFormDialog";
 
-
 export interface ShooterCardProps {
 	id: number;
 	name: string;
@@ -31,8 +30,6 @@ const DeleteOneShooterMutation = gql`
 		}
 	}
 `;
-
-
 
 export default function ShooterCard(props: ShooterCardProps) {
 	const [ deleteShooter ] = useMutation<Mutation["deleteShooter"], MutationDeleteShooterArgs>(DeleteOneShooterMutation);
@@ -66,11 +63,18 @@ export default function ShooterCard(props: ShooterCardProps) {
 
 	return (
 		<>
-			<Paper elevation={2} sx={{my:2, p:0}}>
+			<Paper elevation={2} sx={{ my: 2, p: 0 }}>
 				<Grid container gap={2} sx={{p:0}}>
 					<Grid container item xs={12} sm sx={{p:0}}>
 						<Button fullWidth sx={{ p: 1, color: "white", textAlign: "left" }} variant="outlined" color="primary" onClick={() => props?.onClick?.(props.id)}>
 							<Grid container>
+								{props.team && (
+									<Grid item xs={12} alignContent={"center"}>
+										<Paper sx={{px: 1, py: 0.5}}>
+											<Typography variant="caption" color={"aqua"}>Team: {props.team?.name}</Typography>
+										</Paper>
+									</Grid>
+								)}
 								<Grid item xs={12} sm={12} md={12/4} alignContent={"center"}>
 									<Typography variant="h4" color={"textPrimary"}>{props.name}</Typography>
 									<Typography variant="caption" color={"GrayText"}>Division: {props.division}</Typography>
