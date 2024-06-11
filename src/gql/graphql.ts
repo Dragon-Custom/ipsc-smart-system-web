@@ -537,11 +537,14 @@ export type Shooter = Node & {
   createAt: Scalars['DateTime']['output'];
   designedStage?: Maybe<Array<Maybe<Stage>>>;
   division: Division;
-  elo?: Maybe<Array<Maybe<Elo>>>;
+  elo: Scalars['Float']['output'];
+  elos?: Maybe<Array<Maybe<Elo>>>;
   email: Scalars['String']['output'];
   id: Scalars['Int']['output'];
   name: Scalars['String']['output'];
+  ranking: Scalars['Int']['output'];
   rankings?: Maybe<Array<Maybe<Ranking>>>;
+  rating: Scalars['Float']['output'];
   ratings?: Maybe<Array<Maybe<Rating>>>;
   scores?: Maybe<Array<Maybe<Score>>>;
   team?: Maybe<Team>;
