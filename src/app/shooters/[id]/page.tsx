@@ -48,13 +48,16 @@ const FetchQuery = gql`
 				createAt
 				tick
 			}
-			elo {
+			elos {
 				id
 				elo
 				updatedAt
 				createAt
 				tick
 			}
+			elo
+			rating
+			ranking
 		}
 	}
 `;
@@ -158,7 +161,7 @@ export default function ShooterStatisticPage() {
 		originalRating?.toSorted((a, b) => b?.createAt - a?.createAt);
 		const ratingData = originalRating?.map((item) => item?.rating ?? 0) ?? [];
 
-		const originalElo = query.data?.shooter?.elo;
+		const originalElo = query.data?.shooter?.elos;
 		originalElo?.toSorted((a, b) => b?.createAt - a?.createAt);
 		const eloData = originalElo?.map((item) => item?.elo ?? 0) ?? [];
 		
@@ -236,7 +239,7 @@ export default function ShooterStatisticPage() {
 					<Paper elevation={10} sx={{p: 2}}>
 						<Stack>
 							<Divider><Chip variant="outlined" label="Current" /></Divider>
-							<Typography variant="subtitle1">Current Ranking: {`#${data.shooter?.rankings?.[data.shooter?.rankings.length - 1]?.rank ?? 0}`}</Typography>
+							<Typography variant="subtitle1">Current Ranking: {`#${data.shooter?.ranking ?? 0}`}</Typography>
 							<Typography variant="caption" color={"InactiveCaptionText"}>Rank vs Time</Typography>
 							<SparkLineChart
 								data={data.shooter?.rankings?.toSorted((a, b) => (a?.tick || 0) - (b?.tick || 0)).map((item) => item?.rank ?? 0) ?? []}
@@ -247,10 +250,10 @@ export default function ShooterStatisticPage() {
 									transform: "scale(1, -1)",
 								}}
 							/>
-							<Typography variant="subtitle1">Current Rating: {`${(data.shooter?.ratings?.[data.shooter?.ratings.length - 1]?.rating ?? 0).toFixed(2)}`}</Typography>
+							<Typography variant="subtitle1">Current Rating: {`${(data.shooter?.rating ?? 0).toFixed(2)}`}</Typography>
 							<Typography variant="caption" color={"InactiveCaptionText"}>Rating represented the shooter performance</Typography>
 							<Typography variant="overline" fontSize={"10px"} color={"GrayText"}> s = sum of score, t = sum of  time, k = s/t, a = avg acc, h= avg hit factor, rating(k) = ak^2+hk</Typography>
-							<Typography variant="subtitle1">Current ELO: {`${(data.shooter?.elo?.[data.shooter?.elo.length - 1]?.elo ?? 0).toFixed(2)}`}</Typography>
+							<Typography variant="subtitle1">Current ELO: {`${(data.shooter?.elo ?? 0).toFixed(2)}`}</Typography>
 							<Typography variant="caption" color={"InactiveCaptionText"}>ELO represents how a {"shooter's"} performance is compared to other shooters.</Typography>
 							<Divider><Chip variant="outlined" label="Average" /></Divider>
 							<Typography variant="subtitle1">Average Hit Factor: {(data.shooterStatistic?.averageHitFactor ?? 0).toFixed(3)}</Typography>
