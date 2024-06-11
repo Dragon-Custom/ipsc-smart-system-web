@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { gql, useQuery, useSubscription } from "@apollo/client";
-import { Maybe, Query } from "@/gql/graphql";
+import { Maybe, Query, Team } from "@/gql/graphql";
 // import { AgGridReact } from "ag-grid-react";
 import ShooterCard from "./shooterCard";
 import { Box, Divider, FormControl, Grid, InputLabel, List, MenuItem, Select, SpeedDial, SpeedDialAction, SpeedDialIcon, Typography } from "@mui/material";
@@ -21,29 +21,9 @@ const DataQuery = gql`
 			name
 			division
 			email
-			rankings {
-				id
-				shooterId
-				rank
-				updatedAt
-				createAt
-				tick
-			}
-			ratings {
-				id
-				shooterId
-				rating
-				updatedAt
-				createAt
-				tick
-			}
-			elo {
-				id
-				elo
-				updatedAt
-				createAt
-				tick
-			}
+			ranking
+			rating
+			elo
 			team {
 				id
 				name
@@ -110,23 +90,11 @@ export default function Shooters() {
 				return 0;
 			});
 		case "Elo":
-			return data?.shooters?.toSorted((a, b) => {
-				const aLastestElo = a?.elo?.[a?.elo?.length - 1]?.elo || 0;
-				const bLastestElo = b?.elo?.[b?.elo?.length - 1]?.elo || 0;
-				return bLastestElo - aLastestElo;
-			});
+			return data?.shooters?.toSorted((a, b) => (b?.elo || 0) - (a?.elo || 0));
 		case "Rank":
-			return data?.shooters?.toSorted((a, b) => {
-				const aLastestRank = a?.rankings?.[a?.rankings?.length - 1]?.rank || 0;
-				const bLastestRank = b?.rankings?.[b?.rankings?.length - 1]?.rank || 0;
-				return aLastestRank - bLastestRank;
-			});
+			return data?.shooters?.toSorted((a, b) => (b?.ranking || 0) - (a?.ranking || 0));
 		case "Rating":
-			return data?.shooters?.toSorted((a, b) => {
-				const aLastestRating = a?.ratings?.[a?.ratings?.length - 1]?.rating || 0;
-				const bLastestRating = b?.ratings?.[b?.ratings?.length - 1]?.rating || 0;
-				return bLastestRating - aLastestRating;
-			});
+			return data?.shooters?.toSorted((a, b) => (b?.rating || 0) - (a?.rating || 0));
 		case "Accuracy":
 			return data?.shooters?.toSorted((a, b) => (a?.ratings?.[0]?.rating ?? 0) - (b?.ratings?.[0]?.rating ?? 0));
 		default:
@@ -169,10 +137,10 @@ export default function Shooters() {
 							id={v.id}
 							name={v.name}
 							email={v.email}
-							elo={v.elo?.[v.elo?.length - 1]?.elo ?? 0}
-							rank={v.rankings?.[v.rankings?.length - 1]?.rank ?? 0}
-							rating={v.ratings?.[v.ratings?.length - 1]?.rating ?? 0}
-							team={v.team}
+							elo={v.elo}
+							rank={v.ranking}
+							rating={v.rating}
+							team={v.team as Team}
 						/>
 						<Divider sx={{ my: .5 }} />
 					</Box>;
