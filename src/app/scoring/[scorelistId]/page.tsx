@@ -22,6 +22,8 @@ import {
 	Button,
 	ButtonGroup,
 	FormControlLabel,
+	Menu,
+	MenuItem,
 	Paper,
 	SpeedDial,
 	SpeedDialAction,
@@ -37,15 +39,21 @@ import {
 import { AgGridReact } from "ag-grid-react";
 import { useParams, useRouter } from "next/navigation";
 import React from "react";
-import { ColDef, RowClickedEvent, RowDragEndEvent } from "@ag-grid-community/core";
+import {
+	ColDef,
+	RowClickedEvent,
+	RowDragEndEvent,
+} from "@ag-grid-community/core";
 import JoinShooterDialog from "./joinShooterDialog";
 import { useToggle } from "@uidotdev/usehooks";
 import { useLoading } from "mui-loading";
-import { shuffle } from "@/lib/utils";
+import { delay, shuffle } from "@/lib/utils";
 import { useSearchParameters } from "@/hooks/useSearchParameters";
+import "./print.css";
+import html2canvas from "html2canvas";
 
 const FetchQuery = gql`
-    query Scorelist($id: Int!) {
+	query Scorelist($id: Int!) {
 		scorelist(id: $id) {
 			id
 			createAt
@@ -97,13 +105,11 @@ const FetchQuery = gql`
 `;
 
 const AddRoundToScorelistMutation = gql`
-    mutation (
-        $id: Int!
-    ) {
-        addRoundsToScorelist(id: $id) {
-            id
-        }
-    }
+	mutation ($id: Int!) {
+		addRoundsToScorelist(id: $id) {
+			id
+		}
+	}
 `;
 
 const SwapMutation = gql`
@@ -123,21 +129,20 @@ const ScorelistsChangeSubscription = gql`
 	}
 `;
 
-
 interface ScoreItem {
-    Name: string;
-    A: number;
-    C: number;
-    D: number;
-    Miss: number;
-    NoShoots: number;
-    Popper: number;
-    ProErrors: number;
-    Time: number;
-    HitFactor: string;
-    Percentage: number;
-    Id: number;
-    State: string;
+	Name: string;
+	A: number;
+	C: number;
+	D: number;
+	Miss: number;
+	NoShoots: number;
+	Popper: number;
+	ProErrors: number;
+	Time: number;
+	HitFactor: string;
+	Percentage: number;
+	Id: number;
+	State: string;
 	Round?: number;
 	Accuracy: number;
 }
@@ -147,8 +152,14 @@ export default function ScorelistPage() {
 	const id = parseInt(params.scorelistId as string);
 	if (isNaN(id)) return <>Error: youve pass a invaild scorelist id</>;
 	const theme = useTheme();
-	const [updateScorelist] = useMutation<Mutation["addRoundsToScorelist"], MutationAddRoundsToScorelistArgs>(AddRoundToScorelistMutation);
-	const [selectedRound, setSelectedRound] = useSearchParameters<number>("round", 0);
+	const [updateScorelist] = useMutation<
+		Mutation["addRoundsToScorelist"],
+		MutationAddRoundsToScorelistArgs
+	>(AddRoundToScorelistMutation);
+	const [selectedRound, setSelectedRound] = useSearchParameters<number>(
+		"round",
+		0,
+	);
 	const query = useQuery<Query, QueryScorelistArgs>(FetchQuery, {
 		variables: {
 			id,
@@ -204,14 +215,18 @@ export default function ScorelistPage() {
 				Popper: v.poppers ?? 0,
 				ProErrors: v.proErrorCount,
 				Time: v.time,
-				HitFactor: parseFloat(v.hitFactor as unknown as string).toFixed(3),
-				Percentage: selectedRound == 0 ? v.overallPercentage : v.roundPercentage,
+				HitFactor: parseFloat(v.hitFactor as unknown as string).toFixed(
+					3,
+				),
+				Percentage:
+					selectedRound == 0
+						? v.overallPercentage
+						: v.roundPercentage,
 				State: v.state,
 				Round: v.round,
 				Accuracy: v.accuracy as number,
 			});
 		});
-		console.log("refresh");
 		setRowData([...Rows.toSorted((a, b) => a.Id - b.Id)]);
 		const newColDefs = [...colDefs];
 		newColDefs[1].hide = selectedRound != 0;
@@ -219,7 +234,7 @@ export default function ScorelistPage() {
 	}
 
 	const [joinShooterDialogOpem, setJoinShooterDialogOpem] =
-        React.useState(false);
+		React.useState(false);
 	function openJoinShooterDialog() {
 		setJoinShooterDialogOpem(true);
 	}
@@ -228,24 +243,31 @@ export default function ScorelistPage() {
 	}
 
 	//TODO refactor swap
-	const [ swap ] = useMutation<Mutation["swapScoresId"], MutationSwapScoresIdArgs>(SwapMutation);
-	const onRowDragEnd = React.useCallback((event: RowDragEndEvent<ScoreItem>) => {
-		try {
-			const movingNode = event.node;
-			const overNode = event.overNode;
-			const movingData = movingNode.data;
-			const overData = overNode!.data;
-			if (!movingData?.Id || !overData?.Id)
-				return;
-			swap({
-				variables: {
-					srcId: movingData.Id,
-					destId: overData.Id,
-				},
-			});
-		} catch (e) { /* empty */ }
-	}, []);
-	
+	const [swap] = useMutation<
+		Mutation["swapScoresId"],
+		MutationSwapScoresIdArgs
+	>(SwapMutation);
+	const onRowDragEnd = React.useCallback(
+		(event: RowDragEndEvent<ScoreItem>) => {
+			try {
+				const movingNode = event.node;
+				const overNode = event.overNode;
+				const movingData = movingNode.data;
+				const overData = overNode!.data;
+				if (!movingData?.Id || !overData?.Id) return;
+				swap({
+					variables: {
+						srcId: movingData.Id,
+						destId: overData.Id,
+					},
+				});
+			} catch (e) {
+				/* empty */
+			}
+		},
+		[],
+	);
+
 	// #region grid
 
 	function onSelectedRoundChange(newRound: number) {
@@ -265,11 +287,14 @@ export default function ScorelistPage() {
 		{ field: "NoShoots", minWidth: 100 },
 		{ field: "Popper", minWidth: 80 },
 		{ field: "ProErrors", minWidth: 100 },
-		{ field: "Time" , valueFormatter: (v) => `${v.value.toFixed(2)}s`},
-		{ field: "HitFactor"},
-		{ field: "Percentage", valueFormatter: (v) => `${v.value.toFixed(1)}%`},
+		{ field: "Time", valueFormatter: (v) => `${v.value.toFixed(2)}s` },
+		{ field: "HitFactor" },
+		{
+			field: "Percentage",
+			valueFormatter: (v) => `${v.value.toFixed(1)}%`,
+		},
 		{ field: "State", hide: true },
-		{ field: "Accuracy", valueFormatter: (v) => `${v.value.toFixed(1)}%`},
+		{ field: "Accuracy", valueFormatter: (v) => `${v.value.toFixed(1)}%` },
 	]);
 
 	const autoSizeStrategy = {
@@ -278,13 +303,14 @@ export default function ScorelistPage() {
 	const gridRef = React.useRef<AgGridReact>(null);
 	const autoSizeAll = React.useCallback((skipHeader: boolean) => {
 		try {
-
 			const allColumnIds: string[] = [];
 			gridRef.current!.api.getColumns()!.forEach((column) => {
 				allColumnIds.push(column.getId());
 			});
 			gridRef.current!.api.autoSizeColumns(allColumnIds, skipHeader);
-		} catch (e) { /* empty */ }
+		} catch (e) {
+			/* empty */
+		}
 	}, []);
 
 	const router = useRouter();
@@ -299,10 +325,9 @@ export default function ScorelistPage() {
 		refreshGrid();
 		setTimeout(() => autoSizeAll(false), 500);
 	}, [selectedRound, query, enableOrdering]);
-	React.useEffect(() => {		
+	React.useEffect(() => {
 		setTimeout(() => autoSizeAll(false), 1000);
 	}, [gridRef]);
-
 
 	const getRowStyle = (params: RowClassParams<ScoreItem>) => {
 		switch (params.data?.State) {
@@ -333,13 +358,13 @@ export default function ScorelistPage() {
 	//TODO refactor randomizing
 	async function randomizeOrder() {
 		try {
-			const roundIds = data.scores?.filter(v => v?.round === selectedRound).map(v => v?.id);
+			const roundIds = data.scores
+				?.filter((v) => v?.round === selectedRound)
+				.map((v) => v?.id);
 			if (!roundIds) throw new Error("No round found");
 			await shuffle(roundIds, async (src, dest) => {
-				if (!roundIds[src] || !roundIds[dest])
-					return;
-				if (src === dest)
-					return;
+				if (!roundIds[src] || !roundIds[dest]) return;
+				if (src === dest) return;
 				loading?.startLoading();
 				await swap({
 					variables: {
@@ -352,6 +377,71 @@ export default function ScorelistPage() {
 					},
 				});
 			});
+		} finally {
+			loading?.stopLoading();
+		}
+	}
+
+	const coRef = React.useRef<HTMLDivElement>(null);
+
+	const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+	const open = Boolean(anchorEl);
+	function handleExportMenuClose() {
+		setAnchorEl(null);
+	}
+	function handleExportMenuOpen(event: React.MouseEvent<HTMLButtonElement>) {
+		setAnchorEl(event.currentTarget);
+	}
+	async function exportScore(format: "JPG" | "PDF") {
+		try {
+			switch (format) {
+			case "JPG":
+				loading?.startLoading();
+				// #region null check
+				if (!gridRef.current) return;
+				// #endregion
+				gridRef.current.api.setGridOption("domLayout", "print");
+				await delay(100);
+				autoSizeAll(false);
+				await delay(100);
+				// eslint-disable-next-line no-case-declarations
+				const canvas = await html2canvas(
+					// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+					//@ts-expect-error
+					document.getElementsByClassName("ag-layout-print")[0],
+				);
+					// eslint-disable-next-line no-case-declarations
+				const imageData = canvas.toDataURL("image/jpg");
+				// eslint-disable-next-line no-case-declarations
+				const link = document.createElement("a");
+
+				link.href = imageData;
+				link.download = `${new Date(
+					data.stage?.createAt,
+				).toLocaleDateString()} ${data.stage?.name} ${
+					selectedRound == 0
+						? "Overall"
+						: `Round ${selectedRound}`
+				}.jpg`;
+
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+				// #endregion
+				await delay(100);
+				gridRef.current.api.setGridOption("domLayout", "normal");
+				break;
+				// #endregion
+
+			case "PDF":
+				gridRef.current?.api.setGridOption("domLayout", "print");
+				await delay(100);
+				autoSizeAll(false);
+				await delay(100);
+				print();
+				gridRef.current?.api.setGridOption("domLayout", "normal");
+				break;
+			}
 		} finally {
 			loading?.stopLoading();
 		}
@@ -377,10 +467,13 @@ export default function ScorelistPage() {
 					data.stage?.createAt,
 				).toLocaleDateString()} ${data.stage?.name}`}</Typography>
 			</Box>
-			<Paper elevation={10} sx={{
-				mt: 2,
-				height: "100%",
-			}}>
+			<Paper
+				elevation={10}
+				sx={{
+					mt: 2,
+					height: "100%",
+				}}
+			>
 				<Tabs
 					variant="scrollable"
 					value={selectedRound ?? 0}
@@ -401,35 +494,73 @@ export default function ScorelistPage() {
 						return tabList;
 					})()}
 				</Tabs>
-				<Stack direction={mobileBreakpoint ? "row" : "column"} justifyContent={"space-between"} gap={2}>
-					<Stack direction={mobileBreakpoint ? "row" : "column"} gap={2}>
-						<Button onClick={() => autoSizeAll(false)}>
-							Resize the grid
-						</Button>
-						{selectedRound == 0 ||
-							<FormControlLabel value={enableOrdering} onChange={() => toggleOrdering()} control={<Switch />} label="Enable ordering" />
-						}
-						<Button variant="outlined" onClick={() => router.replace(`${location.origin}/statistics/?scorelist=%5B${id}%5D`)}>Statistics</Button>
+				<Stack
+					direction={mobileBreakpoint ? "row" : "column"}
+					justifyContent={"space-between"}
+					gap={2}
+					py={1}
+				>
+					<Stack
+						direction={mobileBreakpoint ? "row" : "column"}
+						gap={2}
+					>
+						<ButtonGroup variant="outlined">
+							<Button onClick={() => autoSizeAll(false)}>
+								Resize the grid
+							</Button>
+							<Button
+								onClick={() =>
+									router.replace(
+										`${location.origin}/statistics/?scorelist=%5B${id}%5D`,
+									)
+								}
+							>
+								Statistics
+							</Button>
+							<Button onClick={handleExportMenuOpen}>
+								Export
+							</Button>
+						</ButtonGroup>
+						<Menu
+							anchorEl={anchorEl}
+							open={open}
+							onClose={handleExportMenuClose}
+						>
+							<MenuItem onClick={() => exportScore("JPG")}>
+								Export as image
+							</MenuItem>
+							<MenuItem onClick={() => exportScore("PDF")}>
+								Export as PDF
+							</MenuItem>
+						</Menu>
 					</Stack>
-					{selectedRound == 0 ||
-						<Stack direction={mobileBreakpoint ? "row" : "row-reverse"} gap={2}>
-							<ButtonGroup variant="text">
-								<Button onClick={randomizeOrder}>
-									Reshuffle
-								</Button>
-							</ButtonGroup>
+					{selectedRound == 0 || (
+						<Stack
+							direction={mobileBreakpoint ? "row" : "row-reverse"}
+							gap={2}
+						>
+							<Button onClick={randomizeOrder}>Reshuffle</Button>
+							<FormControlLabel
+								value={enableOrdering}
+								onChange={() => toggleOrdering()}
+								control={<Switch />}
+								label="Enable ordering"
+							/>
 						</Stack>
-					}
+					)}
 				</Stack>
 				<div
 					className="ag-theme-alpine-dark" // applying the grid theme
 					style={{
 						height: "100%",
 					}} // the grid will fill the size of the parent container
+					ref={coRef}
+					id="myGrid"
 				>
 					{/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
 					{/* @ts-ignore */}
 					<AgGridReact
+						id={"feamoefmowepfomkewfop"}
 						ref={gridRef}
 						rowData={rowData}
 						onRowClicked={onRowClicked}
@@ -454,20 +585,22 @@ export default function ScorelistPage() {
 					tooltipOpen
 					onClick={addRround}
 				/>
-				{selectedRound == 0 || <SpeedDialAction
-					icon={<PersonAdd />}
-					tooltipTitle={"Join shooters"}
-					tooltipOpen
-					onClick={openJoinShooterDialog}
-				/>}
+				{selectedRound == 0 || (
+					<SpeedDialAction
+						icon={<PersonAdd />}
+						tooltipTitle={"Join shooters"}
+						tooltipOpen
+						onClick={openJoinShooterDialog}
+					/>
+				)}
 			</SpeedDial>
 
 			<JoinShooterDialog
 				open={joinShooterDialogOpem}
 				onClose={closeJoinShooterDialog}
 				scorelistId={id}
-				round={(selectedRound ?? 0)}
-				selectedRound={(selectedRound ?? 0)}
+				round={selectedRound ?? 0}
+				selectedRound={selectedRound ?? 0}
 			/>
 		</Stack>
 	);
