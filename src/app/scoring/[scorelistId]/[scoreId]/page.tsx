@@ -144,7 +144,7 @@ const ScoreInputControll = React.forwardRef(function ScoreInputControll(props: S
 						min: 0,
 					}}
 					{...props}
-					onChange={(e) => props.onChange ? props.onChange("set", parseFloat(e.target.value)) : {}}
+					onChange={(e) => props.onChange?.("set", parseFloat(e.target.value))}
 					fullWidth
 					type="number"
 				/>
@@ -525,7 +525,7 @@ export default function ScorePage() {
 	const data = query.data.score;
 	return (
 		<>
-			{query.data?.dqObjects ?
+			{query.data?.dqObjects ? (
 				<Dialog
 					open={dqDialogOpen}
 					onClose={() => toggleDqDialogOpen()}
@@ -539,7 +539,7 @@ export default function ScorePage() {
 				>
 					<DialogTitle>Select DQ Reason</DialogTitle>
 					<DialogContent>
-						<Stack gap={2} sx={{pt:2}}>
+						<Stack gap={2} sx={{ pt: 2 }}>
 							<FormControl>
 								<InputLabel>DQ Catergory</InputLabel>
 								<Select
@@ -547,10 +547,21 @@ export default function ScorePage() {
 									required
 									fullWidth
 									value={selectedDqCategory}
-									onChange={(v) => setSelectedDqCategory(v.target.value)}
+									onChange={(v) =>
+										setSelectedDqCategory(v.target.value)
+									}
 								>
-									{Object.keys(Object.groupBy(query.data?.dqObjects ?? [], (dqObj) => dqObj?.category ?? "")).map(v => {
-										return <MenuItem key={v} value={v} >{v}</MenuItem>;
+									{Object.keys(
+										Object.groupBy(
+											query.data?.dqObjects ?? [],
+											(dqObj) => dqObj?.category ?? "",
+										),
+									).map((v) => {
+										return (
+											<MenuItem key={v} value={v}>
+												{v}
+											</MenuItem>
+										);
 									})}
 								</Select>
 							</FormControl>
@@ -561,32 +572,58 @@ export default function ScorePage() {
 									fullWidth
 									value={selectedDqReason}
 									label="DQ Reason"
-									onChange={(v) => setSelectedDqReason(parseInt(v.target.value as string))}
+									onChange={(v) =>
+										setSelectedDqReason(
+											parseInt(v.target.value as string),
+										)
+									}
 								>
-									{query.data?.dqObjects?.map(v => {
-										if (v?.category !== selectedDqCategory )
+									{query.data?.dqObjects?.map((v) => {
+										if (v?.category !== selectedDqCategory)
 											return;
-										return <MenuItem key={v.index} value={v.id} >{v.title}</MenuItem>;
+										return (
+											<MenuItem
+												key={v.index}
+												value={v.id}
+											>
+												{v.title}
+											</MenuItem>
+										);
 									})}
 								</Select>
 							</FormControl>
 							<Typography variant="h5">
-								{query.data?.dqObjects?.find(v => v?.id == selectedDqReason)?.description}
+								{
+									query.data?.dqObjects?.find(
+										(v) => v?.id == selectedDqReason,
+									)?.description
+								}
 							</Typography>
 						</Stack>
 					</DialogContent>
 					<DialogActions>
-						<Button onClick={() => toggleDqDialogOpen()}>Cancel</Button>
-						<Button variant="contained" color="error" type="submit">DQ</Button>
+						<Button onClick={() => toggleDqDialogOpen()}>
+							Cancel
+						</Button>
+						<Button variant="contained" color="error" type="submit">
+							DQ
+						</Button>
 					</DialogActions>
 				</Dialog>
-				: <></>}
+			) : (
+				<></>
+			)}
 			<Dialog
 				open={timerDialogOpen}
 				onClose={closeTimerDialog}
 				keepMounted
 			>
-				<Timer onAssign={(v) => { closeTimerDialog(); onTimeChange(v); }}/>
+				<Timer
+					onAssign={(v) => {
+						closeTimerDialog();
+						onTimeChange(v);
+					}}
+				/>
 			</Dialog>
 			<ProErrorDialog
 				onClose={() => toggleProErrorOpen()}
@@ -597,86 +634,152 @@ export default function ScorePage() {
 				value={proError}
 				onChange={setProError}
 			/>
-			<Container maxWidth="sm" sx={{height:"100%"}}>
+			<Container maxWidth="sm" sx={{ height: "100%" }}>
 				<Paper
 					elevation={2}
-					sx={{ py:2 , height: "max-content"}}
-					component= 'form'
+					sx={{ py: 2, height: "max-content" }}
+					component="form"
 					onSubmit={(event: React.FormEvent<HTMLFormElement>) => {
 						event.preventDefault();
 					}}
 				>
-					<Stack spacing={2} sx={{height:"100%", mx: 2}} alignItems="center" > 
-						<Typography variant="h5" align="center">Shooter: {data.shooter.name}</Typography>
-						<Grid container spacing={2} justifyContent={"space-between"} sx={{px: 2}}>
+					<Stack
+						spacing={2}
+						sx={{ height: "100%", mx: 2 }}
+						alignItems="center"
+					>
+						<Typography variant="h5" align="center">
+							Shooter: {data.shooter.name}
+						</Typography>
+						<Grid
+							container
+							spacing={2}
+							justifyContent={"space-between"}
+							sx={{ px: 2 }}
+						>
 							<ScoreInputControll
 								label="Time"
 								InputProps={{ endAdornment: "s" }}
 								hideDecreamentButton
 								hideIncreamentButton
 								name="time"
-								value={displayTime}
+								value={time}
 								onChange={(a, v) => onTimeChange(v)}
 							/>
 							<Grid item xs={12} sm={6}>
-								<Button fullWidth sx={{height:"100%"}} variant="outlined" onClick={openTimerDialog}>Open Timer</Button>
+								<Button
+									fullWidth
+									sx={{ height: "100%" }}
+									variant="outlined"
+									onClick={openTimerDialog}
+								>
+									Open Timer
+								</Button>
 							</Grid>
 							<ScoreInputControll
 								label="Poppers"
 								defaultValue={data.scorelist.stage?.poppers}
-								inputProps={{ min: 0, max: data.scorelist.stage?.poppers }}
+								inputProps={{
+									min: 0,
+									max: data.scorelist.stage?.poppers,
+								}}
 								name="poppers"
 								value={popper}
 								onChange={onPopperChange}
 								sm={12}
 							/>
 						</Grid>
-						<Divider variant="fullWidth" sx={{width: "100%"}}>
+						<Divider variant="fullWidth" sx={{ width: "100%" }}>
 							Papers
 						</Divider>
 						<Stack sx={{ width: "100%" }}>
 							<Grid container>
-								<ButtonGroup variant="text" fullWidth size="large" aria-label="Basic button group">
-									<Grid item xs={12/6}/>
-									<Grid item xs={12/6}>
-										<Button fullWidth disableRipple>A</Button>
+								<ButtonGroup
+									variant="text"
+									fullWidth
+									size="large"
+									aria-label="Basic button group"
+								>
+									<Grid item xs={12 / 6} />
+									<Grid item xs={12 / 6}>
+										<Button fullWidth disableRipple>
+											A
+										</Button>
 									</Grid>
-									<Grid item xs={12/6}>
-										<Button fullWidth disableRipple>C</Button>
+									<Grid item xs={12 / 6}>
+										<Button fullWidth disableRipple>
+											C
+										</Button>
 									</Grid>
-									<Grid item xs={12/6}>
-										<Button fullWidth disableRipple>D</Button>
+									<Grid item xs={12 / 6}>
+										<Button fullWidth disableRipple>
+											D
+										</Button>
 									</Grid>
-									<Grid item xs={12/6}>
-										<Button fullWidth disableRipple>M</Button>
+									<Grid item xs={12 / 6}>
+										<Button fullWidth disableRipple>
+											M
+										</Button>
 									</Grid>
-									<Grid item xs={12/6}>
-										<Button fullWidth disableRipple>NS</Button>
+									<Grid item xs={12 / 6}>
+										<Button fullWidth disableRipple>
+											NS
+										</Button>
 									</Grid>
 								</ButtonGroup>
 							</Grid>
-							{paperData.map((v, k) => <PaperAssignItem
-								id={k}
-								key={k}
-								value={v}
-								onChange={PaperDataChange}
-							/>)}
+							{paperData.map((v, k) => (
+								<PaperAssignItem
+									id={k}
+									key={k}
+									value={v}
+									onChange={PaperDataChange}
+								/>
+							))}
 						</Stack>
-						<Button fullWidth variant="outlined" color="secondary" onClick={() => toggleProErrorOpen()}>Pro errors</Button>
+						<Button
+							fullWidth
+							variant="outlined"
+							color="secondary"
+							onClick={() => toggleProErrorOpen()}
+						>
+							Pro errors
+						</Button>
 						<ButtonGroup fullWidth variant="text">
-							<Button variant="contained" color="error" onClick={() => toggleDqDialogOpen()}>DQ</Button>
-							<Button variant="contained" color="warning" onClick={dnf}>DNF</Button>
-							<Button variant="contained" color="success" onClick={review}>Review</Button>
+							<Button
+								variant="contained"
+								color="error"
+								onClick={() => toggleDqDialogOpen()}
+							>
+								DQ
+							</Button>
+							<Button
+								variant="contained"
+								color="warning"
+								onClick={dnf}
+							>
+								DNF
+							</Button>
+							<Button
+								variant="contained"
+								color="success"
+								onClick={review}
+							>
+								Review
+							</Button>
 						</ButtonGroup>
-						<Typography sx={(theme) => {
-							return {
-								...theme.typography.button,
-								background: theme.palette.background.default,
-								width: "100%",
-								p: 2,
-								textAlign: "center",
-							};
-						}}>
+						<Typography
+							sx={(theme) => {
+								return {
+									...theme.typography.button,
+									background:
+										theme.palette.background.default,
+									width: "100%",
+									p: 2,
+									textAlign: "center",
+								};
+							}}
+						>
 							{scoreCode}
 						</Typography>
 					</Stack>
