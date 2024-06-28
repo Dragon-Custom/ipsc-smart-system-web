@@ -30,7 +30,6 @@ interface SettingItemProps extends SettingItem {
 	onChange: (setting_name: string, value: number | number[]) => unknown;
 }
 function SettingItem(props: SettingItemProps) {
-
 	function onChange(v: string | number) {
 		props.onChange(props.setting_name, parseFloat(v as string));
 	}
@@ -39,10 +38,9 @@ function SettingItem(props: SettingItemProps) {
 		props.onChange(props.setting_name, v);
 	}
 
-
 	return (
 		<>
-			<Paper elevation={5} sx={{ px: 2, pt: 1, my:1}}>
+			<Paper elevation={5} sx={{ px: 2, pt: 1, my: 1 }}>
 				<Stack>
 					<Typography align="center">{props.display_name}</Typography>
 					{(() => {
@@ -55,11 +53,20 @@ function SettingItem(props: SettingItemProps) {
 										<Select
 											value={props.value as number}
 											label="Waveform"
-											onChange={(v) => onChange(v.target.value)}
+											onChange={(v) =>
+												onChange(v.target.value)
+											}
 										>
-											{props.selector_item?.map((v, k) => (
-												<MenuItem value={k} key={k}>{v}</MenuItem>
-											))}
+											{props.selector_item?.map(
+												(v, k) => (
+													<MenuItem
+														value={k}
+														key={k}
+													>
+														{v}
+													</MenuItem>
+												),
+											)}
 										</Select>
 									</FormControl>
 								</>
@@ -72,9 +79,7 @@ function SettingItem(props: SettingItemProps) {
 											<Slider
 												value={props.value}
 												onChange={(e, v) =>
-													onChange(
-														v as number,
-													)
+													onChange(v as number)
 												}
 												min={props.min}
 												max={props.max}
@@ -83,13 +88,14 @@ function SettingItem(props: SettingItemProps) {
 										</Grid>
 										<Grid item xs={2}>
 											<Input
-												sx={{ml: 2}}
+												sx={{ ml: 2 }}
 												fullWidth
 												type="number"
 												value={props.value}
 												onChange={(v) =>
 													onChange(
-														v.currentTarget.value,
+														v.currentTarget
+															.value,
 													)
 												}
 												inputProps={{
@@ -109,13 +115,18 @@ function SettingItem(props: SettingItemProps) {
 									<Grid container gap={1}>
 										<Grid item xs={2}>
 											<Input
-												sx={{mr: 1}}
+												sx={{ mr: 1 }}
 												fullWidth
 												type="number"
-												value={(props.value as number[])[0]}
+												value={
+													(
+															props.value as number[]
+													)[0]
+												}
 												onChange={(v) =>
 													onChange(
-														v.currentTarget.value,
+														v.currentTarget
+															.value,
 													)
 												}
 												inputProps={{
@@ -131,7 +142,7 @@ function SettingItem(props: SettingItemProps) {
 												value={props.value}
 												onChange={(e, v) =>
 													onRangeChange(
-														v as number[],
+															v as number[],
 													)
 												}
 												min={props.min}
@@ -142,13 +153,18 @@ function SettingItem(props: SettingItemProps) {
 										</Grid>
 										<Grid item xs={2}>
 											<Input
-												sx={{ml: 1}}
+												sx={{ ml: 1 }}
 												fullWidth
 												type="number"
-												value={(props.value as number[])[1]}
+												value={
+													(
+															props.value as number[]
+													)[1]
+												}
 												onChange={(v) =>
 													onChange(
-														v.currentTarget.value,
+														v.currentTarget
+															.value,
 													)
 												}
 												inputProps={{
@@ -170,11 +186,10 @@ function SettingItem(props: SettingItemProps) {
 	);
 }
 
-
 interface SettingItem {
 	setting_name: string;
 	display_name: string;
-	type: "slider" | "selector" | "range"
+	type: "slider" | "selector" | "range";
 	max?: number;
 	min?: number;
 	selector_item?: string[];
@@ -182,10 +197,12 @@ interface SettingItem {
 	unit?: string;
 }
 
-export interface StopplateSettngDialogProps extends DialogProps{
-	onClose: () => void,
+export interface StopplateSettngDialogProps extends DialogProps {
+	onClose: () => void;
 }
-export default function StopplateSettngDialog(props: StopplateSettngDialogProps) {
+export default function StopplateSettngDialog(
+	props: StopplateSettngDialogProps,
+) {
 	const stopplate = BLEStopplateService.GetInstance();
 	const [connectState, setConnectState] = React.useState(false);
 	const [loading, setLoading] = React.useState(false);
@@ -233,18 +250,29 @@ export default function StopplateSettngDialog(props: StopplateSettngDialogProps)
 			selector_item: BUZZER_WAVEFORM_OBJECT,
 			value: 0,
 		},
+		{
+			setting_name: "sensitive",
+			display_name: "Sensor sensitivity",
+			type: "slider",
+			max: 3000,
+			min: 0,
+			value: 0,
+			unit: "m s^-3",
+		},
 	]);
 
 	function onSettingChange(settingName: string, value: number | number[]) {
 		const newSetting = setting;
-		const index = newSetting.findIndex(v => v.setting_name === settingName);
+		const index = newSetting.findIndex(
+			(v) => v.setting_name === settingName,
+		);
 		newSetting[index].value = value;
 		setSetting([...newSetting]);
 	}
 
 	async function onConnectButtonClick() {
 		setLoading(true);
-		if (await stopplate.scanAndConnectToStopplate() === false) {
+		if ((await stopplate.scanAndConnectToStopplate()) === false) {
 			setTimeout(() => setLoading(false), 2000);
 			setLoading(false);
 			await delay(530);
@@ -264,11 +292,18 @@ export default function StopplateSettngDialog(props: StopplateSettngDialogProps)
 		const remoteSetting = await stopplate.getSettings();
 		console.log(remoteSetting);
 		setSetting([
-			{...setting[0], value:remoteSetting.indicator_light_up_duration},
-			{...setting[1], value:[remoteSetting.countdown_random_time_min, remoteSetting.countdown_random_time_max]},
-			{...setting[2], value:remoteSetting.buzzer_duration},
-			{...setting[3], value:remoteSetting.buzzer_frequency},
-			{...setting[4], value:remoteSetting.buzzer_waveform},
+			{ ...setting[0], value: remoteSetting.indicator_light_up_duration },
+			{
+				...setting[1],
+				value: [
+					remoteSetting.countdown_random_time_min,
+					remoteSetting.countdown_random_time_max,
+				],
+			},
+			{ ...setting[2], value: remoteSetting.buzzer_duration },
+			{ ...setting[3], value: remoteSetting.buzzer_frequency },
+			{ ...setting[4], value: remoteSetting.buzzer_waveform },
+			{ ...setting[5], value: remoteSetting.sensitive },
 		]);
 		setLoading(false);
 	}
@@ -292,6 +327,8 @@ export default function StopplateSettngDialog(props: StopplateSettngDialogProps)
 			setting[2].value as number,
 			setting[3].value as number,
 			setting[4].value as number,
+			setting[5].value as number,
+
 		);
 		props.onClose();
 	}
@@ -314,36 +351,73 @@ export default function StopplateSettngDialog(props: StopplateSettngDialogProps)
 				<DialogTitle>Stopplate Settings</DialogTitle>
 				<DialogContent>
 					<Stack>
-						{!connectState ?
-							<Button fullWidth variant="contained" onClick={onConnectButtonClick}>Connect</Button> :
-							<Button fullWidth variant="outlined" onClick={onDisconnectButtonClick}>Disconnect</Button>
-						}
-						{connectState ?
+						{!connectState ? (
+							<Button
+								fullWidth
+								variant="contained"
+								onClick={onConnectButtonClick}
+							>
+								Connect
+							</Button>
+						) : (
+							<Button
+								fullWidth
+								variant="outlined"
+								onClick={onDisconnectButtonClick}
+							>
+								Disconnect
+							</Button>
+						)}
+						{connectState ? (
 							setting.map((v, k) => {
-								return <SettingItem
-									key={k}
-									display_name={v.display_name}
-									setting_name={v.setting_name}
-									type={v.type}
-									onChange={onSettingChange}
-									value={v.value}
-									min={v.min}
-									max={v.max}
-									selector_item={v.selector_item}
-								/>;
-							}): <></>
-						}
+								return (
+									<SettingItem
+										key={k}
+										display_name={v.display_name}
+										setting_name={v.setting_name}
+										type={v.type}
+										onChange={onSettingChange}
+										value={v.value}
+										min={v.min}
+										max={v.max}
+										selector_item={v.selector_item}
+									/>
+								);
+							})
+						) : (
+							<></>
+						)}
 					</Stack>
 				</DialogContent>
 				<DialogActions>
-					<Button onClick={props.onClose} variant="contained" color="error" fullWidth>Cancel</Button>
-					{connectState ?
-						<Button type="submit" onClick={onApplyButtonClick} variant="contained" color="success" fullWidth>Apply</Button> : <></>
-					}
+					<Button
+						onClick={props.onClose}
+						variant="contained"
+						color="error"
+						fullWidth
+					>
+						Cancel
+					</Button>
+					{connectState ? (
+						<Button
+							type="submit"
+							onClick={onApplyButtonClick}
+							variant="contained"
+							color="success"
+							fullWidth
+						>
+							Apply
+						</Button>
+					) : (
+						<></>
+					)}
 				</DialogActions>
 			</Dialog>
 			<Backdrop
-				sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.modal + 1000000000 }}
+				sx={{
+					color: "#fff",
+					zIndex: (theme) => theme.zIndex.modal + 1000000000,
+				}}
 				open={loading}
 			>
 				<CircularProgress color="inherit" />
